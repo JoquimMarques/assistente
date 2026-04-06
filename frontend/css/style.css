@@ -1,0 +1,306 @@
+:root {
+  --bg-1: #070b1f;
+  --bg-2: #031228;
+  --bg-3: #010812;
+  --ink: #d7ecff;
+  --muted: #73b0d3;
+  --line: rgba(74, 177, 255, 0.22);
+  --panel: rgba(8, 18, 36, 0.86);
+  --cyan: #24e0ff;
+  --cyan-strong: #08b7ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Rajdhani", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 48% 42%, rgba(27, 121, 197, 0.14), transparent 34%),
+    radial-gradient(circle at 50% 80%, rgba(13, 74, 124, 0.25), transparent 48%),
+    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 58%, var(--bg-3) 100%);
+  overflow: hidden;
+}
+
+.screen {
+  width: min(450px, 100vw);
+  height: 100dvh;
+  margin: 0 auto;
+  padding: 20px 18px 16px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  position: relative;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.assistant-name {
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.14em;
+  color: var(--cyan);
+  font-size: 0.86rem;
+  text-shadow: 0 0 22px rgba(36, 224, 255, 0.55);
+}
+
+.orb-zone {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  gap: 26px;
+  transform: translateY(-22px);
+}
+
+.visual-orb {
+  width: clamp(190px, 52vw, 230px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 48%, rgba(0, 0, 0, 0.1) 0%, rgba(3, 11, 24, 0.92) 78%);
+  border: 3px solid rgba(35, 188, 255, 0.84);
+  box-shadow:
+    0 0 0 2px rgba(0, 44, 70, 0.45) inset,
+    0 0 28px rgba(22, 164, 255, 0.52),
+    0 0 72px rgba(4, 95, 146, 0.42);
+  animation: orb-breathe 4.2s ease-in-out infinite;
+}
+
+body.assistant-listening .visual-orb,
+.btn-voice.listening {
+  border-color: var(--cyan);
+  box-shadow:
+    0 0 0 2px rgba(36, 224, 255, 0.44) inset,
+    0 0 30px rgba(36, 224, 255, 0.85),
+    0 0 90px rgba(7, 157, 240, 0.85);
+}
+
+body.assistant-listening .visual-orb {
+  animation: orb-listening 1.15s ease-in-out infinite;
+}
+
+.status-text {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.03rem, 4vw, 1.2rem);
+  color: #41d8ff;
+  text-shadow: 0 0 16px rgba(65, 216, 255, 0.45);
+}
+
+.bottom-dock {
+  margin-bottom: 8px;
+  border-top: 1px solid rgba(54, 120, 168, 0.4);
+  background: linear-gradient(180deg, rgba(3, 13, 29, 0) 0%, rgba(3, 13, 29, 0.9) 34%);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 8px 2px;
+}
+
+.dock-btn,
+.sheet-action,
+.btn-send,
+.btn-refresh-mics {
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: rgba(16, 42, 70, 0.55);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-family: "Rajdhani", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.dock-btn:hover,
+.sheet-action:hover,
+.btn-send:hover,
+.btn-refresh-mics:hover {
+  border-color: rgba(68, 190, 255, 0.75);
+}
+
+.btn-voice {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1px solid rgba(18, 206, 255, 0.8);
+  background: radial-gradient(circle at 50% 40%, #37e9ff 0%, #09b8f3 60%, #0472a8 100%);
+  color: #e7fbff;
+  font-size: 1.8rem;
+  line-height: 1;
+  box-shadow: 0 0 20px rgba(24, 196, 255, 0.55);
+  cursor: pointer;
+}
+
+.sheet-panel {
+  position: fixed;
+  left: 50%;
+  width: min(450px, 100vw);
+  transform: translate(-50%, 110%);
+  bottom: 0;
+  max-height: 62dvh;
+  padding: 14px;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border: 1px solid rgba(39, 126, 180, 0.45);
+  border-bottom: none;
+  background: var(--panel);
+  backdrop-filter: blur(6px);
+  transition: transform 0.28s ease;
+  z-index: 8;
+}
+
+body.show-chat #chat-panel {
+  transform: translate(-50%, 0);
+}
+
+body.show-settings #settings-panel {
+  transform: translate(-50%, 0);
+}
+
+.sheet-header,
+.debug-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-family: "Orbitron", sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.chat-list {
+  border: 1px solid rgba(42, 112, 156, 0.45);
+  border-radius: 14px;
+  background: rgba(2, 13, 27, 0.56);
+  padding: 10px;
+  height: 34dvh;
+  overflow-y: auto;
+}
+
+.message {
+  max-width: 88%;
+  margin: 8px 0;
+  padding: 9px 11px;
+  border-radius: 12px;
+  line-height: 1.3;
+}
+
+.message.user {
+  margin-left: auto;
+  background: rgba(15, 116, 173, 0.34);
+  border: 1px solid rgba(57, 186, 255, 0.44);
+}
+
+.message.assistant {
+  background: rgba(6, 46, 76, 0.66);
+  border: 1px solid rgba(63, 134, 184, 0.42);
+}
+
+.message small {
+  display: block;
+  color: var(--muted);
+  margin-top: 3px;
+  font-size: 0.8rem;
+}
+
+.text-form {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+input,
+select {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(6, 24, 43, 0.9);
+  color: var(--ink);
+  padding: 10px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 1rem;
+}
+
+input::placeholder {
+  color: rgba(143, 186, 214, 0.76);
+}
+
+.mic-controls {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.debug-log {
+  max-height: 20dvh;
+  overflow-y: auto;
+  border: 1px solid rgba(42, 112, 156, 0.45);
+  border-radius: 12px;
+  background: rgba(2, 13, 27, 0.52);
+  padding: 8px;
+  font-size: 0.83rem;
+}
+
+.debug-entry {
+  color: #9ad6f7;
+  margin-bottom: 6px;
+  border-bottom: 1px dashed rgba(43, 115, 160, 0.4);
+  padding-bottom: 5px;
+  word-break: break-word;
+}
+
+@keyframes orb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes orb-listening {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@media (max-width: 480px) {
+  .screen {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .dock-btn {
+    font-size: 0.92rem;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .text-form,
+  .mic-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-send,
+  .btn-refresh-mics {
+    border-radius: 11px;
+  }
+}

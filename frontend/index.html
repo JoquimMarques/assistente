@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="api-base-url" content="" />
+    <title>Assistente Virtual de Voz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <main class="screen">
+      <header class="top-bar" aria-label="Marca do assistente">
+        <span class="assistant-name">Bloner</span>
+      </header>
+
+      <section class="orb-zone" aria-live="polite">
+        <div id="visual-orb" class="visual-orb" aria-hidden="true"></div>
+        <p id="status" class="status-text">Pronto para conversar.</p>
+      </section>
+
+      <nav class="bottom-dock" aria-label="Controles principais">
+        <button id="btn-open-chat" class="dock-btn" type="button" aria-label="Abrir conversas">
+          Conversa
+        </button>
+        <button id="btn-voice" class="btn-voice" type="button" aria-label="Falar com assistente">
+          ●
+        </button>
+        <button id="btn-open-settings" class="dock-btn" type="button" aria-label="Abrir ajustes">
+          Ajustes
+        </button>
+      </nav>
+
+      <section id="chat-panel" class="sheet-panel" aria-live="polite">
+        <div class="sheet-header">
+          <strong>Conversa</strong>
+          <button id="btn-close-chat" class="sheet-action" type="button">Fechar</button>
+        </div>
+        <div id="chat" class="chat-list"></div>
+        <form id="chat-form" class="text-form">
+          <input id="chat-input" type="text" placeholder="Digite uma pergunta..." autocomplete="off" required />
+          <button type="submit" class="btn-send">Enviar</button>
+        </form>
+      </section>
+
+      <section id="settings-panel" class="sheet-panel">
+        <div class="sheet-header">
+          <strong>Microfone e debug</strong>
+          <button id="btn-close-settings" class="sheet-action" type="button">Fechar</button>
+        </div>
+
+        <div class="mic-controls" aria-label="Selecao de microfone">
+          <select id="mic-select" class="mic-select" aria-label="Selecionar microfone"></select>
+          <button id="btn-refresh-mics" class="btn-refresh-mics" type="button">Atualizar</button>
+        </div>
+
+        <div class="debug-header">
+          <strong>Painel de debug de voz</strong>
+          <button id="btn-clear-debug" class="sheet-action" type="button">Limpar</button>
+        </div>
+        <div id="debug-log" class="debug-log"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
