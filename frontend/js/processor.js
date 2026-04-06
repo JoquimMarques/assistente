@@ -1,7 +1,9 @@
 import { parseCommand } from "./commands.js";
 
 const FALLBACK_TEXT =
-  "Nao consegui confirmar essa resposta agora. Tente perguntar de forma direta, por exemplo: o que e HTML, o que e CSS ou quem foi Alan Turing.";
+  "Nao encontrei isso na memoria nem na Wikipedia agora. Se quiser, posso aprender com: ensinar: pergunta | resposta";
+
+const WAKE_WORDS = ["axel", "alexa", "pessoa"];
 
 function resolveApiBaseUrl() {
   const metaTag = document.querySelector('meta[name="api-base-url"]');
@@ -16,6 +18,98 @@ const API_BASE_URL = resolveApiBaseUrl();
 
 function buildApiUrl(path) {
   return API_BASE_URL ? `${API_BASE_URL}${path}` : path;
+}
+
+function normalizeForMatch(text) {
+  return String(text || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function stripWakeWord(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return { text: "", usedWakeWord: false };
+
+  const pattern = new RegExp(`^\\s*(${WAKE_WORDS.join("|")})\\s*[,;:!.-]*\\s*`, "i");
+  const match = raw.match(pattern);
+  if (!match) {
+    return { text: raw, usedWakeWord: false };
+  }
+
+  const cleaned = raw.replace(pattern, "").trim();
+  return {
+    text: cleaned,
+    usedWakeWord: true,
+    wakeWordOnly: !cleaned
+  };
+}
+
+function getCannedReply(text) {
+  const normalized = normalizeForMatch(text);
+
+  if (!normalized) return null;
+
+  const greetings = ["oi", "ola", "hey", "e ai", "eae", "boas", "bom dia", "boa tarde", "boa noite"];
+  if (greetings.includes(normalized)) {
+    return {
+      reply:
+        "Ola. Eu sou o Axel, seu assistente de voz. Posso responder perguntas, buscar na Wikipedia e aprender novas respostas com o comando ensinar.",
+      source: "resposta_pronta"
+    };
+  }
+
+  if (
+    normalized.includes("quem e voce") ||
+    normalized.includes("se apresenta") ||
+    normalized.includes("teu nome") ||
+    normalized.includes("seu nome")
+  ) {
+    return {
+      reply:
+        "Eu sou o Axel. Posso conversar com voce, responder perguntas e buscar informacoes na Wikipedia quando nao encontro na memoria.",
+      source: "resposta_pronta"
+    };
+  }
+
+  if (
+    normalized.includes("o que voce faz") ||
+    normalized.includes("o que podes fazer") ||
+    normalized.includes("o que pode fazer")
+  ) {
+    return {
+      reply:
+        "Eu posso responder perguntas, ler respostas em voz alta, mostrar memorias salvas e aprender com o comando ensinar: pergunta | resposta.",
+      source: "resposta_pronta"
+    };
+  }
+
+  return null;
+}
+
+function extractSearchTopic(text) {
+  const normalized = normalizeForMatch(text)
+    .replace(/[?!.]/g, " ")
+    .replace(/\bo\s+que\s+e\b/g, "")
+    .replace(/\bquem\s+e\b/g, "")
+    .replace(/\bqual\s+e\b/g, "")
+    .replace(/\bquais\s+sao\b/g, "")
+    .replace(/\bme\s+da\b/g, "")
+    .replace(/\bme\s+diz\b/g, "")
+    .replace(/\bme\s+diga\b/g, "")
+    .replace(/\bme\s+fala\s+sobre\b/g, "")
+    .replace(/\bme\s+fale\s+sobre\b/g, "")
+    .replace(/\bespecificacoes\b/g, "")
+    .replace(/\bdo\s+computador\b/g, "")
+    .replace(/\bdo\s+portatil\b/g, "")
+    .replace(/\bdo\s+laptop\b/g, "")
+    .replace(/\bsobre\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (normalized.length >= 2) return normalized;
+  return String(text || "").trim();
 }
 
 async function apiGet(url) {
@@ -36,9 +130,24 @@ async function apiPost(url, payload) {
 }
 
 export async function processUserText(text) {
-  const clean = String(text || "").trim();
-  if (!clean) {
+  const raw = String(text || "").trim();
+  if (!raw) {
     return { reply: "Envie uma pergunta para eu te ajudar.", source: "sistema" };
+  }
+
+  const wake = stripWakeWord(raw);
+  if (wake.wakeWordOnly) {
+    return {
+      reply: "Estou ouvindo. Pode fazer sua pergunta.",
+      source: "ativacao"
+    };
+  }
+
+  const clean = wake.text || raw;
+
+  const canned = getCannedReply(clean);
+  if (canned) {
+    return canned;
   }
 
   const command = parseCommand(clean);
@@ -113,17 +222,22 @@ export async function processUserText(text) {
     };
   }
 
-  const wiki = await apiGet(`/api/search/wiki?q=${encodeURIComponent(clean)}`);
-  if (wiki.result?.summary) {
-    return {
-      reply: wiki.result.summary,
-      source: "wikipedia"
-    };
-  }
+  const keyword = extractSearchTopic(clean);
+  const wikiQueries = [clean, keyword].filter(Boolean);
+  const tried = new Set();
 
-  const ai = await apiPost("/api/ai/answer", { text: clean });
-  if (ai.result?.answer) {
-    return { reply: ai.result.answer, source: "ia_gratuita" };
+  for (const query of wikiQueries) {
+    const normalized = normalizeForMatch(query);
+    if (tried.has(normalized)) continue;
+    tried.add(normalized);
+
+    const wiki = await apiGet(`/api/search/wiki?q=${encodeURIComponent(query)}`);
+    if (wiki.result?.summary) {
+      return {
+        reply: wiki.result.summary,
+        source: "wikipedia"
+      };
+    }
   }
 
   return { reply: FALLBACK_TEXT, source: "fallback" };

@@ -430,6 +430,6 @@ await loadAudioInputDevices();
 
 addMessage(
   "assistant",
-  "Ola. Pergunte algo ou diga: mostrar memorias, ensinar algo, abrir memoria.",
+  "Ola, eu sou o Axel. Diga Axel ou Alexa e faca sua pergunta. Se eu nao souber, eu pesquiso na Wikipedia.",
   "sistema"
 );
