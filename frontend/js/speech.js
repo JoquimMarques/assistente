@@ -94,7 +94,7 @@ export function createSpeechRecognizer({
     }
 
     if (error === "audio-capture") {
-      onStatusChange?.("Nenhum microfone detectado no sistema.");
+      onStatusChange?.("Falha temporaria ao acessar o microfone. Tente novamente.");
       return;
     }
 

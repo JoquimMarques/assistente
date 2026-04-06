@@ -20,6 +20,17 @@ let lastMicPeak = 0;
 let noSpeechWithSignalCount = 0;
 let selectedDeviceId = "default";
 
+function warmupSpeechSynthesis() {
+  if (!("speechSynthesis" in window)) return;
+
+  const loadVoices = () => {
+    window.speechSynthesis.getVoices();
+  };
+
+  loadVoices();
+  window.speechSynthesis.addEventListener("voiceschanged", loadVoices, { once: true });
+}
+
 function buildAudioConstraint() {
   if (!selectedDeviceId || selectedDeviceId === "default") {
     return { audio: true };
@@ -121,6 +132,13 @@ async function loadAudioInputDevices() {
   } catch {
     addDebugLog("ERROR", "Nao consegui listar os microfones do navegador");
   }
+}
+
+if (navigator.mediaDevices?.addEventListener) {
+  navigator.mediaDevices.addEventListener("devicechange", () => {
+    addDebugLog("MIC", "Mudanca de dispositivo detectada. Atualizando lista...");
+    loadAudioInputDevices();
+  });
 }
 
 async function probeMicrophone() {
@@ -379,6 +397,7 @@ voiceButton?.addEventListener("click", async () => {
 });
 
 addDebugLog("DEBUG", "Painel de debug iniciado");
+warmupSpeechSynthesis();
 
 await loadAudioInputDevices();
 
