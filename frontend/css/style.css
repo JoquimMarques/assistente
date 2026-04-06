@@ -88,6 +88,15 @@ body.assistant-listening .visual-orb {
   animation: orb-listening 1.15s ease-in-out infinite;
 }
 
+body.assistant-speaking .visual-orb {
+  border-color: #7af2ff;
+  box-shadow:
+    0 0 0 2px rgba(122, 242, 255, 0.42) inset,
+    0 0 34px rgba(75, 228, 255, 0.95),
+    0 0 110px rgba(10, 168, 255, 0.95);
+  animation: orb-speaking 0.52s ease-in-out infinite;
+}
+
 .status-text {
   margin: 0;
   text-align: center;
@@ -140,6 +149,12 @@ body.assistant-listening .visual-orb {
   line-height: 1;
   box-shadow: 0 0 20px rgba(24, 196, 255, 0.55);
   cursor: pointer;
+}
+
+.btn-voice:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.2);
 }
 
 .sheet-panel {
@@ -279,6 +294,19 @@ input::placeholder {
   }
   50% {
     transform: scale(1.08);
+  }
+}
+
+@keyframes orb-speaking {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.12);
+  }
+  60% {
+    transform: scale(1.04);
   }
 }
 

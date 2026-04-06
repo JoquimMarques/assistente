@@ -15,10 +15,20 @@ const openSettingsButton = document.querySelector("#btn-open-settings");
 const closeSettingsButton = document.querySelector("#btn-close-settings");
 let isListening = false;
 let isStarting = false;
+let isSpeaking = false;
 let lastNoSpeechAt = 0;
 let lastMicPeak = 0;
 let noSpeechWithSignalCount = 0;
 let selectedDeviceId = "default";
+
+function setSpeakingState(speaking) {
+  isSpeaking = speaking;
+  document.body.classList.toggle("assistant-speaking", speaking);
+  if (voiceButton) {
+    voiceButton.disabled = speaking;
+    voiceButton.setAttribute("aria-disabled", speaking ? "true" : "false");
+  }
+}
 
 function warmupSpeechSynthesis() {
   if (!("speechSynthesis" in window)) return;
@@ -220,9 +230,24 @@ async function handleInput(text) {
   try {
     const result = await processUserText(clean);
     addMessage("assistant", result.reply, result.source || "assistente");
-    speak(result.reply);
-    setStatus("Pronto para conversar.");
+
+    const speechStarted = speak(result.reply, {
+      onStart: () => {
+        setSpeakingState(true);
+        setStatus("Falando resposta...");
+      },
+      onEnd: () => {
+        setSpeakingState(false);
+        setStatus("Pronto para conversar.");
+      }
+    });
+
+    if (!speechStarted) {
+      setSpeakingState(false);
+      setStatus("Pronto para conversar.");
+    }
   } catch {
+    setSpeakingState(false);
     const msg = "Tive um erro ao processar. Tente novamente em instantes.";
     addMessage("assistant", msg, "erro");
     setStatus("Erro temporario no processamento.");
@@ -334,6 +359,12 @@ voiceButton?.addEventListener("click", async () => {
     return;
   }
 
+  if (isSpeaking) {
+    addDebugLog("ACTION", "Aguarde a resposta terminar para iniciar nova escuta");
+    setStatus("Aguarde eu terminar de falar para ouvir de novo.");
+    return;
+  }
+
   if (isListening) {
     addDebugLog("ACTION", "Parando escuta manualmente");
     recognizer.stop();
@@ -360,27 +391,23 @@ voiceButton?.addEventListener("click", async () => {
 
   const signal = await probeMicrophoneSignal();
   if (!signal.ok) {
-    addDebugLog("ERROR", "Falha ao medir sinal do microfone");
-    setStatus("Nao consegui validar o sinal do microfone.");
-    isStarting = false;
-    return;
+    addDebugLog("WARN", "Falha ao medir sinal do microfone. Tentando escuta mesmo assim.");
+    lastMicPeak = 0;
+  } else {
+    addDebugLog(
+      "MIC",
+      `Dispositivo: ${signal.deviceLabel} | Pico: ${signal.peak.toFixed(4)}`
+    );
+    lastMicPeak = signal.peak;
   }
 
-  addDebugLog(
-    "MIC",
-    `Dispositivo: ${signal.deviceLabel} | Pico: ${signal.peak.toFixed(4)}`
-  );
-  lastMicPeak = signal.peak;
-
-  if (!signal.hasSignal) {
+  if (signal.ok && !signal.hasSignal) {
     addMessage(
       "assistant",
-      "Seu microfone foi acessado, mas o nivel de audio esta muito baixo. Verifique no Windows se o microfone correto esta selecionado e sem mudo.",
+      "Sinal baixo detectado agora, mas vou tentar ouvir mesmo assim. Fale perto do microfone logo apos ativar.",
       "diagnostico"
     );
-    setStatus("Microfone sem sinal detectavel. Ajuste o dispositivo de entrada.");
-    isStarting = false;
-    return;
+    setStatus("Sinal de microfone baixo. Tentando reconhecimento...");
   }
 
   try {

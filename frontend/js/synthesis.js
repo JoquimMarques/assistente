@@ -9,6 +9,8 @@ function pickPortugueseVoice() {
   return pt || null;
 }
 
+let activeSpeechToken = 0;
+
 function splitIntoSpeechChunks(text, maxLength = 260) {
   const clean = String(text || "").replace(/\s+/g, " ").trim();
   if (!clean) return [];
@@ -45,7 +47,7 @@ function splitIntoSpeechChunks(text, maxLength = 260) {
   return chunks;
 }
 
-export function speak(text) {
+export function speak(text, callbacks = {}) {
   const clean = String(text || "").trim();
   if (!clean || !("speechSynthesis" in window)) return false;
 
@@ -53,12 +55,19 @@ export function speak(text) {
   if (!chunks.length) return false;
 
   const voice = pickPortugueseVoice();
+  const onStart = callbacks?.onStart;
+  const onEnd = callbacks?.onEnd;
+  const speechToken = activeSpeechToken + 1;
+  activeSpeechToken = speechToken;
 
   window.speechSynthesis.cancel();
   window.speechSynthesis.resume();
+  onStart?.();
 
   let index = 0;
   const speakNext = () => {
+    if (activeSpeechToken !== speechToken) return;
+
     if (index >= chunks.length) return;
 
     const utterance = new SpeechSynthesisUtterance(chunks[index]);
@@ -70,12 +79,22 @@ export function speak(text) {
     }
 
     utterance.onend = () => {
+      if (activeSpeechToken !== speechToken) return;
       index += 1;
+      if (index >= chunks.length) {
+        onEnd?.();
+        return;
+      }
       speakNext();
     };
 
     utterance.onerror = () => {
+      if (activeSpeechToken !== speechToken) return;
       index += 1;
+      if (index >= chunks.length) {
+        onEnd?.();
+        return;
+      }
       speakNext();
     };
 
