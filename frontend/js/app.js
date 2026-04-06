@@ -32,6 +32,35 @@ function buildAudioConstraint() {
   };
 }
 
+async function getMicrophoneStreamWithFallback() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return { ok: true, stream: null, usedFallback: false };
+  }
+
+  const attempts = [buildAudioConstraint(), { audio: true }];
+  let lastError = null;
+
+  for (let i = 0; i < attempts.length; i += 1) {
+    const constraint = attempts[i];
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraint);
+      const usedFallback = i > 0;
+
+      if (usedFallback && selectedDeviceId !== "default") {
+        selectedDeviceId = "default";
+        if (micSelect) micSelect.value = "default";
+        addDebugLog("MIC", "Falha no dispositivo selecionado. Fallback para microfone padrao.");
+      }
+
+      return { ok: true, stream, usedFallback };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  return { ok: false, stream: null, error: lastError, usedFallback: false };
+}
+
 function isProbablyVirtualMicrophone(label = "") {
   const lower = label.toLowerCase();
   return (
@@ -97,13 +126,13 @@ async function loadAudioInputDevices() {
 async function probeMicrophone() {
   if (!navigator.mediaDevices?.getUserMedia) return true;
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia(buildAudioConstraint());
-    stream.getTracks().forEach((track) => track.stop());
-    return true;
-  } catch {
+  const result = await getMicrophoneStreamWithFallback();
+  if (!result.ok) {
     return false;
   }
+
+  result.stream?.getTracks().forEach((track) => track.stop());
+  return true;
 }
 
 async function probeMicrophoneSignal() {
@@ -115,7 +144,12 @@ async function probeMicrophoneSignal() {
   let audioContext;
 
   try {
-    stream = await navigator.mediaDevices.getUserMedia(buildAudioConstraint());
+    const micResult = await getMicrophoneStreamWithFallback();
+    if (!micResult.ok || !micResult.stream) {
+      return { ok: false, hasSignal: false, peak: 0, deviceLabel: "indisponivel" };
+    }
+
+    stream = micResult.stream;
     const track = stream.getAudioTracks()[0];
     const deviceLabel = track?.label || "microfone sem nome";
 
@@ -295,7 +329,7 @@ voiceButton?.addEventListener("click", async () => {
   if (!micOk) {
     addMessage(
       "assistant",
-      "Nao consegui acessar o microfone. Verifique a permissao do site no navegador.",
+      "Nao consegui acessar o microfone agora. Verifique permissao do navegador e se outro app nao esta bloqueando o dispositivo.",
       "diagnostico"
     );
     addDebugLog("ERROR", "Falha ao acessar microfone via getUserMedia");

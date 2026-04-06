@@ -1,7 +1,7 @@
 import { parseCommand } from "./commands.js";
 
 const FALLBACK_TEXT =
-  "Nao encontrei essa informacao, mas posso aprender se quiser me ensinar.";
+  "Nao consegui confirmar essa resposta agora. Tente perguntar de forma direta, por exemplo: o que e HTML, o que e CSS ou quem foi Alan Turing.";
 
 function resolveApiBaseUrl() {
   const metaTag = document.querySelector('meta[name="api-base-url"]');
