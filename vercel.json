@@ -4,6 +4,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://assistente-hcwc.onrender.com/api/$1"
+    },
+    {
       "source": "/",
       "destination": "/frontend/index.html"
     },
