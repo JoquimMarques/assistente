@@ -234,7 +234,8 @@ export async function processUserText(text) {
       };
     }
   } catch (e) {
-    console.error("Erro ao chamar IA:", e);
+    console.error("[Processor] Erro ao chamar IA do backend:", e.message);
+    console.log("[Processor] Verifique se o backend está online e se a OPENROUTER_API_KEY está configurada no servidor (Render/Local).");
   }
 
   // Wikipedia - Fallback para fatos enciclopédicos se a IA não responder

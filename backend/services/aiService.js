@@ -4,7 +4,8 @@ export async function askFreeAI(query) {
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    console.error("[aiService] OPENROUTER_API_KEY nao configurada.");
+    console.error("[aiService] ERRO: OPENROUTER_API_KEY não encontrada no servidor.");
+    console.log("[aiService] Verifique suas variáveis de ambiente no Render ou no seu arquivo .env local.");
     return null;
   }
 
@@ -28,10 +29,11 @@ export async function askFreeAI(query) {
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://vercel.com", // Requisito do OpenRouter para alguns modelos
         "X-Title": "Axel Virtual Assistant"
       },
       body: JSON.stringify({
-        model: "google/gemini-flash-1.5", // Modelo estável e comum
+        model: "google/gemini-2.0-flash-001", // Modelo mais rápido e moderno disponível no OpenRouter
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: clean }
