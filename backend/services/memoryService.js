@@ -140,7 +140,7 @@ export async function findExactMemory(text) {
   );
 }
 
-export async function findSimilarMemory(text, threshold = 0.35) {
+export async function findSimilarMemory(text, threshold = 0.30) {
   const normalizedInput = normalizeText(text);
   if (!normalizedInput) return null;
 

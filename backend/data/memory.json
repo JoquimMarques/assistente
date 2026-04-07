@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "id": 5,
+    "question": "dados pessoais",
+    "answer": "Nao compartilho informacoes privadas meu..",
+    "normalized_question": "dados pessoais",
+    "createdAt": "2026-04-07T15:52:12.942Z"
+  },
+  {
+    "id": 4,
+    "question": "como hackear",
+    "answer": "Nao posso ajudar com atividades ilegais chavalo..",
+    "normalized_question": "como hackear",
+    "createdAt": "2026-04-07T15:51:48.878Z"
+  },
+  {
+    "id": 3,
+    "question": "me diga uma senha",
+    "answer": "Nao posso ajudar com informacoes sensiveis.",
+    "normalized_question": "me diga uma senha",
+    "createdAt": "2026-04-07T15:51:27.164Z"
+  },
+  {
+    "id": 2,
+    "question": "000",
+    "answer": "voar agora",
+    "normalized_question": "000",
+    "createdAt": "2026-04-07T15:45:28.509Z"
+  },
+  {
+    "id": 1,
+    "question": "000",
+    "answer": "activar agora !",
+    "normalized_question": "000",
+    "createdAt": "2026-04-07T15:28:12.148Z"
+  }
+]

@@ -2,6 +2,9 @@ import { createSpeechRecognizer } from "./speech.js";
 import { speak } from "./synthesis.js";
 import { processUserText } from "./processor.js";
 import { addDebugLog, addMessage, clearDebugLog, setStatus } from "./ui.js";
+import { initCanvas } from "./canvas.js";
+
+initCanvas();
 
 const form = document.querySelector("#chat-form");
 const input = document.querySelector("#chat-input");
@@ -225,6 +228,7 @@ async function handleInput(text) {
   if (!clean) return;
 
   addMessage("user", clean, "usuario");
+  document.body.classList.remove("show-settings");
   setStatus("Pensando...");
 
   try {
@@ -430,6 +434,6 @@ await loadAudioInputDevices();
 
 addMessage(
   "assistant",
-  "Ola, eu sou o Axel. Diga Axel ou Alexa e faca sua pergunta. Se eu nao souber, eu pesquiso na Wikipedia.",
+  "Olá, eu sou o Axel, seu assistente virtual. Diga “Axel” seguido da sua pergunta. Caso eu não tenha a resposta, posso pesquisar na Wikipedia para encontrar a melhor informação para você.",
   "sistema"
 );

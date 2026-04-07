@@ -24,7 +24,9 @@ function normalizeForMatch(text) {
   return String(text || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[?!.,;:]/g, " ") // Remove pontuação para matching limpo
     .toLowerCase()
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -55,7 +57,7 @@ function getCannedReply(text) {
   if (greetings.includes(normalized)) {
     return {
       reply:
-        "Ola. Eu sou o Axel, seu assistente de voz. Posso responder perguntas, buscar na Wikipedia e aprender novas respostas com o comando ensinar.",
+        "Olá, eu sou o Axel, seu assistente virtual. Diga “Axel” seguido da sua pergunta. Caso eu não tenha a resposta, posso pesquisar na Wikipedia para encontrar a melhor informação para você.",
       source: "resposta_pronta"
     };
   }
@@ -222,6 +224,20 @@ export async function processUserText(text) {
     };
   }
 
+  // Gemini AI - Prioridade Inteligente
+  try {
+    const ai = await apiPost("/api/ai/answer", { text: clean });
+    if (ai.ok && ai.result?.answer) {
+      return {
+        reply: ai.result.answer,
+        source: ai.result.source || "Gemini AI"
+      };
+    }
+  } catch (e) {
+    console.error("Erro ao chamar IA:", e);
+  }
+
+  // Wikipedia - Fallback para fatos enciclopédicos se a IA não responder
   const keyword = extractSearchTopic(clean);
   const wikiQueries = [clean, keyword].filter(Boolean);
   const tried = new Set();
@@ -231,14 +247,21 @@ export async function processUserText(text) {
     if (tried.has(normalized)) continue;
     tried.add(normalized);
 
-    const wiki = await apiGet(`/api/search/wiki?q=${encodeURIComponent(query)}`);
-    if (wiki.result?.summary) {
-      return {
-        reply: wiki.result.summary,
-        source: "wikipedia"
-      };
+    try {
+      const wiki = await apiGet(`/api/search/wiki?q=${encodeURIComponent(query)}`);
+      if (wiki.result?.summary) {
+        return {
+          reply: wiki.result.summary,
+          source: "wikipedia"
+        };
+      }
+    } catch (e) {
+      console.error("Erro ao buscar Wiki:", e);
     }
   }
 
-  return { reply: FALLBACK_TEXT, source: "fallback" };
+  return { 
+    reply: "Não consegui encontrar uma resposta específica, mas você pode me ensinar usando 'ensinar: pergunta | resposta'.", 
+    source: "fallback" 
+  };
 }

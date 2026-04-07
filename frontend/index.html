@@ -1,73 +1,138 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="api-base-url" content="https://assistente-hcwc.onrender.com" />
-    <link rel="icon" href="data:," />
-    <title>Assistente Virtual de Voz</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Rajdhani:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="/css/style.css" />
-  </head>
-  <body>
-    <main class="screen">
-      <header class="top-bar" aria-label="Marca do assistente">
-        <span class="assistant-name">Bloner</span>
-      </header>
 
-      <section class="orb-zone" aria-live="polite">
-        <div id="visual-orb" class="visual-orb" aria-hidden="true"></div>
-        <p id="status" class="status-text">Pronto para conversar.</p>
-      </section>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="api-base-url" content="" />
+  <link rel="icon" href="data:," />
+  <title>Axel | Assistente Virtual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Orbitron:wght@500;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Markdown Rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+</head>
 
-      <nav class="bottom-dock" aria-label="Controles principais">
-        <button id="btn-open-chat" class="dock-btn" type="button" aria-label="Abrir conversas">
-          Conversa
+<body>
+  <div class="glow-bg"></div>
+  <canvas id="bg-canvas"></canvas>
+
+  <main class="screen">
+    <header class="top-bar">
+      <div class="logo-area">
+        <span class="assistant-name">AXeL</span>
+      </div>
+    </header>
+
+    <section class="orb-zone" aria-live="polite">
+      <div class="orb-container">
+        <div id="visual-orb" class="visual-orb" aria-hidden="true">
+          <div class="orb-blur"></div>
+          <div class="orb-waves">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+          </div>
+          <div class="orb-scan-gif"></div>
+          <div class="orb-inner-ring"></div>
+          <div class="orb-highlight"></div>
+          <div class="orb-core"></div>
+        </div>
+      </div>
+      <div class="status-container">
+        <p id="status-text" class="status-text">Pronto para conversar.</p>
+        <div id="audio-waves" class="audio-waves">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </section>
+
+    <nav class="bottom-dock">
+      <button id="btn-open-chat" class="dock-btn glass" type="button" title="Abrir conversas">
+        <i data-lucide="message-square"></i>
+      </button>
+      <button id="btn-voice" class="btn-voice-premium" type="button" aria-label="Falar com assistente">
+        <div class="voice-icon-inner">
+          <i data-lucide="mic"></i>
+        </div>
+      </button>
+      <button id="btn-open-settings" class="dock-btn glass" type="button" title="Configurações">
+        <i data-lucide="settings"></i>
+      </button>
+    </nav>
+
+    <!-- Chat Panel -->
+    <section id="chat-panel" class="sheet-panel glass">
+      <div class="sheet-header">
+        <div class="header-title">
+          <i data-lucide="message-circle" class="icon-sm"></i>
+          <span>Conversa</span>
+        </div>
+        <button id="btn-close-chat" class="btn-icon-close" type="button">
+          <i data-lucide="x"></i>
         </button>
-        <button id="btn-voice" class="btn-voice" type="button" aria-label="Falar com assistente">
-          ●
+      </div>
+      <div id="chat" class="chat-list"></div>
+      <form id="chat-form" class="text-form">
+        <div class="input-wrapper">
+          <input id="chat-input" type="text" placeholder="Diga algo ou Axel..." autocomplete="off" required />
+        </div>
+        <button type="submit" class="btn-send-main">
+          <i data-lucide="send"></i>
         </button>
-        <button id="btn-open-settings" class="dock-btn" type="button" aria-label="Abrir ajustes">
-          Ajustes
+      </form>
+    </section>
+
+    <!-- Settings Panel -->
+    <section id="settings-panel" class="sheet-panel glass">
+      <div class="sheet-header">
+        <div class="header-title">
+          <i data-lucide="sliders" class="icon-sm"></i>
+          <span>Configurações</span>
+        </div>
+        <button id="btn-close-settings" class="btn-icon-close" type="button">
+          <i data-lucide="x"></i>
         </button>
-      </nav>
+      </div>
 
-      <section id="chat-panel" class="sheet-panel" aria-live="polite">
-        <div class="sheet-header">
-          <strong>Conversa</strong>
-          <button id="btn-close-chat" class="sheet-action" type="button">Fechar</button>
-        </div>
-        <div id="chat" class="chat-list"></div>
-        <form id="chat-form" class="text-form">
-          <input id="chat-input" type="text" placeholder="Digite uma pergunta..." autocomplete="off" required />
-          <button type="submit" class="btn-send">Enviar</button>
-        </form>
-      </section>
-
-      <section id="settings-panel" class="sheet-panel">
-        <div class="sheet-header">
-          <strong>Microfone e debug</strong>
-          <button id="btn-close-settings" class="sheet-action" type="button">Fechar</button>
+      <div class="settings-content">
+        <label class="label-muted">Microfone</label>
+        <div class="mic-controls">
+          <select id="mic-select" class="mic-select glass-input"></select>
+          <button id="btn-refresh-mics" class="btn-refresh glass" type="button">
+            <i data-lucide="refresh-cw"></i>
+          </button>
         </div>
 
-        <div class="mic-controls" aria-label="Selecao de microfone">
-          <select id="mic-select" class="mic-select" aria-label="Selecionar microfone"></select>
-          <button id="btn-refresh-mics" class="btn-refresh-mics" type="button">Atualizar</button>
+        <div class="debug-section">
+          <div class="debug-header">
+            <span>Debug de Voz</span>
+            <button id="btn-clear-debug" class="btn-text-action" type="button">Limpar</button>
+          </div>
+          <div id="debug-log" class="debug-log custom-scrollbar"></div>
         </div>
+      </div>
+    </section>
+  </main>
 
-        <div class="debug-header">
-          <strong>Painel de debug de voz</strong>
-          <button id="btn-clear-debug" class="sheet-action" type="button">Limpar</button>
-        </div>
-        <div id="debug-log" class="debug-log"></div>
-      </section>
-    </main>
+  <script type="module" src="/js/app.js"></script>
+  <script>
+    // Initialize Lucide Icons
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
 
-    <script type="module" src="/js/app.js"></script>
-  </body>
 </html>

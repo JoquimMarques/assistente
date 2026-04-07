@@ -6,12 +6,19 @@ export function addMessage(role, text, meta = "") {
   item.className = `message ${role}`;
 
   const textNode = document.createElement("div");
-  textNode.textContent = text;
+  textNode.className = "message-content";
+  
+  // Renderiza Markdown e sanitiza o HTML
+  const rawHtml = marked.parse(text);
+  const cleanHtml = DOMPurify.sanitize(rawHtml);
+  textNode.innerHTML = cleanHtml;
+  
   item.appendChild(textNode);
 
-  if (meta) {
-    const metaNode = document.createElement("small");
-    metaNode.textContent = meta;
+  if (meta && meta !== "usuario") {
+    const metaNode = document.createElement("span");
+    metaNode.className = "source-tag";
+    metaNode.textContent = `Fonte: ${meta}`;
     item.appendChild(metaNode);
   }
 
@@ -20,7 +27,7 @@ export function addMessage(role, text, meta = "") {
 }
 
 export function setStatus(text) {
-  const status = document.querySelector("#status");
+  const status = document.querySelector("#status-text");
   if (!status) return;
   status.textContent = text;
 }
