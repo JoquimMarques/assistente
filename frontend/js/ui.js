@@ -57,3 +57,24 @@ export function clearDebugLog() {
   if (!log) return;
   log.innerHTML = "";
 }
+
+export function renderMemoryList(memories = []) {
+  const list = document.querySelector("#memory-list");
+  if (!list) return;
+
+  if (!memories.length) {
+    list.innerHTML = `<p class="label-muted" style="text-align: center; padding: 20px;">Nenhuma memória salva ainda.</p>`;
+    return;
+  }
+
+  list.innerHTML = memories
+    .map(
+      (m) => `
+    <div class="memory-item">
+      <div class="mem-q">${m.question}</div>
+      <div class="mem-a">${m.answer}</div>
+    </div>
+  `
+    )
+    .join("");
+}

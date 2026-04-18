@@ -1,7 +1,7 @@
 import { createSpeechRecognizer } from "./speech.js";
 import { speak } from "./synthesis.js";
-import { processUserText } from "./processor.js";
-import { addDebugLog, addMessage, clearDebugLog, setStatus } from "./ui.js";
+import { processUserText, apiGet, apiPost } from "./processor.js";
+import { addDebugLog, addMessage, clearDebugLog, setStatus, renderMemoryList } from "./ui.js";
 import { initCanvas } from "./canvas.js";
 
 initCanvas();
@@ -16,6 +16,10 @@ const openChatButton = document.querySelector("#btn-open-chat");
 const closeChatButton = document.querySelector("#btn-close-chat");
 const openSettingsButton = document.querySelector("#btn-open-settings");
 const closeSettingsButton = document.querySelector("#btn-close-settings");
+const openMemoryButton = document.querySelector("#btn-open-memory");
+const closeMemoryButton = document.querySelector("#btn-close-memory");
+const memoryForm = document.querySelector("#memory-form");
+const refreshMemoryButton = document.querySelector("#btn-refresh-memory");
 let isListening = false;
 let isStarting = false;
 let isSpeaking = false;
@@ -294,9 +298,65 @@ closeSettingsButton?.addEventListener("click", () => {
   document.body.classList.remove("show-settings");
 });
 
+async function loadAndShowMemories() {
+  try {
+    setStatus("Carregando memória...");
+    const data = await apiGet("/api/memory/list");
+    renderMemoryList(data.memories || []);
+    document.body.classList.add("show-memory");
+    document.body.classList.remove("show-chat", "show-settings");
+    setStatus("Pronto para conversar.");
+  } catch (error) {
+    addDebugLog("ERROR", "Falha ao carregar memórias: " + error.message);
+    setStatus("Erro ao carregar lista de memórias.");
+  }
+}
+
+openMemoryButton?.addEventListener("click", loadAndShowMemories);
+
+closeMemoryButton?.addEventListener("click", () => {
+  document.body.classList.remove("show-memory");
+});
+
+refreshMemoryButton?.addEventListener("click", async () => {
+  const data = await apiGet("/api/memory/list");
+  renderMemoryList(data.memories || []);
+});
+
+memoryForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const qInput = document.querySelector("#mem-question");
+  const aInput = document.querySelector("#mem-answer");
+  const question = qInput.value.trim();
+  const answer = aInput.value.trim();
+
+  if (!question || !answer) return;
+
+  try {
+    setStatus("Salvando...");
+    await apiPost("/api/memory/teach", { question, answer });
+    qInput.value = "";
+    aInput.value = "";
+    const data = await apiGet("/api/memory/list");
+    renderMemoryList(data.memories || []);
+    setStatus("Memória salva com sucesso!");
+    setTimeout(() => setStatus("Pronto para conversar."), 2000);
+  } catch (error) {
+    addDebugLog("ERROR", "Erro ao salvar memória: " + error.message);
+    setStatus("Erro ao salvar conhecimento.");
+  }
+});
+
 const recognizer = createSpeechRecognizer({
   onResult: async (spokenText) => {
     addDebugLog("RESULT", spokenText);
+    const result = await processUserText(spokenText);
+    
+    if (result.action === "open_memory") {
+       await loadAndShowMemories();
+       return;
+    }
+
     await handleInput(spokenText);
   },
   onStatusChange: (status) => {

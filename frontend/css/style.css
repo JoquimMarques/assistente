@@ -776,6 +776,107 @@ body.assistant-listening .status-text {
   border-radius: 10px;
 }
 
+/* Memory Manager Styles */
+#memory-panel {
+  max-height: 85vh;
+}
+
+body.show-memory #memory-panel {
+  transform: translate(-50%, 0);
+}
+
+.memory-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.teach-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.memory-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.memory-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.btn-save-memory {
+  background: var(--orange-neon);
+  color: var(--bg-deep);
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-save-memory:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px var(--orange-glow);
+}
+
+.memory-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.memory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.memory-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 15px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: var(--transition);
+}
+
+.memory-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--glass-accent);
+}
+
+.mem-q {
+  font-weight: 700;
+  color: var(--gold-neon);
+  font-size: 0.95rem;
+}
+
+.mem-a {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 @media (max-width: 480px) {
   .screen {
     padding: 20px 15px;

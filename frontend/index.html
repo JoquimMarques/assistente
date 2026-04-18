@@ -61,6 +61,9 @@
       <button id="btn-open-chat" class="dock-btn glass" type="button" title="Abrir conversas">
         <i data-lucide="message-square"></i>
       </button>
+      <button id="btn-open-memory" class="dock-btn glass" type="button" title="Gerenciar Memória">
+        <i data-lucide="brain"></i>
+      </button>
       <button id="btn-voice" class="btn-voice-premium" type="button" aria-label="Falar com assistente">
         <div class="voice-icon-inner">
           <i data-lucide="mic"></i>
@@ -120,6 +123,43 @@
             <button id="btn-clear-debug" class="btn-text-action" type="button">Limpar</button>
           </div>
           <div id="debug-log" class="debug-log custom-scrollbar"></div>
+        </div>
+      </div>
+    </section>
+    <!-- Memory Manager Panel -->
+    <section id="memory-panel" class="sheet-panel glass">
+      <div class="sheet-header">
+        <div class="header-title">
+          <i data-lucide="brain" class="icon-sm"></i>
+          <span>Memória do Axel</span>
+        </div>
+        <button id="btn-close-memory" class="btn-icon-close" type="button">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="memory-content custom-scrollbar">
+        <!-- Teach Form -->
+        <div class="teach-section">
+          <p class="label-muted">Ensinar Novo Conhecimento</p>
+          <form id="memory-form" class="memory-form">
+            <input id="mem-question" type="text" placeholder="Qual a pergunta?" class="glass-input" required />
+            <textarea id="mem-answer" placeholder="Qual a resposta?" class="glass-input" required></textarea>
+            <button type="submit" class="btn-save-memory">
+              <i data-lucide="save"></i>
+              <span>Salvar na Memória</span>
+            </button>
+          </form>
+        </div>
+
+        <div class="memory-list-section">
+          <div class="list-header">
+            <p class="label-muted">Conhecimentos Salvos</p>
+            <button id="btn-refresh-memory" class="btn-text-action">Atualizar</button>
+          </div>
+          <div id="memory-list" class="memory-list">
+             <!-- Memories will be rendered here -->
+          </div>
         </div>
       </div>
     </section>

@@ -10,7 +10,11 @@ export function parseCommand(text) {
     return { type: "teach_help" };
   }
 
-  if (lower.startsWith("abrir memoria")) {
+  if (lower === "abrir memoria") {
+    return { type: "manage_memory" };
+  }
+
+  if (lower.startsWith("abrir memoria ")) {
     const query = raw.slice("abrir memoria".length).trim();
     return { type: "open_memory", query };
   }

@@ -112,13 +112,13 @@ function extractSearchTopic(text) {
   return String(text || "").trim();
 }
 
-async function apiGet(url) {
+export async function apiGet(url) {
   const response = await fetch(buildApiUrl(url));
   if (!response.ok) throw new Error("Falha na requisicao");
   return response.json();
 }
 
-async function apiPost(url, payload) {
+export async function apiPost(url, payload) {
   const response = await fetch(buildApiUrl(url), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -152,20 +152,12 @@ export async function processUserText(text) {
 
   const command = parseCommand(clean);
 
-  if (command?.type === "show_memories") {
-    const data = await apiGet("/api/memory/list");
-    const memories = data.memories || [];
-
-    if (!memories.length) {
-      return { reply: "Ainda nao ha memorias salvas.", source: "comando" };
-    }
-
-    const top = memories
-      .slice(0, 8)
-      .map((item, index) => `${index + 1}. ${item.question}`)
-      .join("\n");
-
-    return { reply: `Memorias salvas:\n${top}`, source: "comando" };
+  if (command?.type === "show_memories" || command?.type === "manage_memory") {
+    return { 
+       reply: "Abrindo o gerenciador de memória...", 
+       source: "comando",
+       action: "open_memory" 
+    };
   }
 
   if (command?.type === "teach_help") {
