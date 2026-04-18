@@ -236,6 +236,12 @@ async function handleInput(text) {
 
   try {
     const result = await processUserText(clean);
+    
+    if (result.action === "open_memory") {
+      await loadAndShowMemories();
+      return;
+    }
+
     addMessage("assistant", result.reply, result.source || "assistente");
 
     const speechStarted = speak(result.reply, {
@@ -348,15 +354,19 @@ memoryForm?.addEventListener("submit", async (e) => {
 
 const recognizer = createSpeechRecognizer({
   onResult: async (spokenText) => {
-    addDebugLog("RESULT", spokenText);
-    const result = await processUserText(spokenText);
+    const clean = String(spokenText || "").trim();
+    addDebugLog("VOICE-RESULT", `Recebido: "${clean}"`);
+    
+    const result = await processUserText(clean);
+    addDebugLog("PROCESSOR-ACTION", result.action || "nenhuma");
     
     if (result.action === "open_memory") {
+       addDebugLog("ACTION", "Abrindo painel de memoria via voz");
        await loadAndShowMemories();
        return;
     }
 
-    await handleInput(spokenText);
+    await handleInput(clean);
   },
   onStatusChange: (status) => {
     addDebugLog("STATUS", status);

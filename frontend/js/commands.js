@@ -1,25 +1,33 @@
 export function parseCommand(text) {
   const raw = String(text || "").trim();
-  const lower = raw.toLowerCase();
+  
+  // Normalização para matching (remover acentos e pontuação)
+  const normalized = raw
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[?!.,;:]/g, " ")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
 
-  if (lower === "mostrar memorias") {
+  if (normalized === "mostrar memorias" || normalized === "mostrar as memorias" || normalized === "ver memorias") {
     return { type: "show_memories" };
   }
 
-  if (lower === "ensinar algo") {
+  if (normalized === "ensinar algo" || normalized === "aprender algo") {
     return { type: "teach_help" };
   }
 
-  if (lower === "abrir memoria") {
+  if (normalized === "abrir memoria" || normalized === "abrir a memoria" || normalized === "gerenciar memoria") {
     return { type: "manage_memory" };
   }
 
-  if (lower.startsWith("abrir memoria ")) {
-    const query = raw.slice("abrir memoria".length).trim();
+  if (normalized.startsWith("abrir memoria ") || normalized.startsWith("abrir a memoria ")) {
+    const query = normalized.replace(/^abrir (a )?memoria /, "").trim();
     return { type: "open_memory", query };
   }
 
-  if (lower.startsWith("ensinar:")) {
+  if (normalized.startsWith("ensinar:")) {
     const payload = raw.slice("ensinar:".length).trim();
     const [question, answer] = payload.split("|").map((part) => part?.trim());
     return { type: "teach_direct", question, answer };
