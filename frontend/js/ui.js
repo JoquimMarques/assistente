@@ -15,7 +15,7 @@ export function addMessage(role, text, meta = "") {
   
   item.appendChild(textNode);
 
-  if (meta && meta !== "usuario") {
+  if (meta && !["usuario", "sistema", "resposta_pronta", "ativacao"].includes(meta)) {
     const metaNode = document.createElement("span");
     metaNode.className = "source-tag";
     metaNode.textContent = `Fonte: ${meta}`;

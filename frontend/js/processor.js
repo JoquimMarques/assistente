@@ -56,8 +56,7 @@ function getCannedReply(text) {
   const greetings = ["oi", "ola", "hey", "e ai", "eae", "boas", "bom dia", "boa tarde", "boa noite"];
   if (greetings.includes(normalized)) {
     return {
-      reply:
-        "Olá, eu sou o Axel, seu assistente virtual. Diga “Axel” seguido da sua pergunta. Caso eu não tenha a resposta, posso pesquisar na Wikipedia para encontrar a melhor informação para você.",
+      reply: "Olá! Como vai? Sou o Axel. Como posso te ajudar hoje?",
       source: "resposta_pronta"
     };
   }
@@ -69,8 +68,7 @@ function getCannedReply(text) {
     normalized.includes("seu nome")
   ) {
     return {
-      reply:
-        "Eu sou o Axel. Posso conversar com voce, responder perguntas e buscar informacoes na Wikipedia quando nao encontro na memoria.",
+      reply: "Eu sou o Axel, seu assistente inteligente. Estou aqui para responder suas dúvidas e buscar informações para você.",
       source: "resposta_pronta"
     };
   }
@@ -140,7 +138,7 @@ export async function processUserText(text) {
   const wake = stripWakeWord(raw);
   if (wake.wakeWordOnly) {
     return {
-      reply: "Estou ouvindo. Pode fazer sua pergunta.",
+      reply: "Estou ouvindo. Pode falar!",
       source: "ativacao"
     };
   }

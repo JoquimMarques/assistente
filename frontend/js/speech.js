@@ -27,7 +27,7 @@ export function createSpeechRecognizer({
       return;
     }
 
-    recognizer.continuous = true;
+    recognizer.continuous = false; // Desativado para esperar o fim natural da fala
     recognizer.interimResults = true;
     recognizer.maxAlternatives = 3;
   }
@@ -59,7 +59,7 @@ export function createSpeechRecognizer({
     timeoutId = setTimeout(() => {
       if (!isListening) return;
       recognizer.stop();
-    }, 12000);
+    }, 15000); // Aumentado para 15s para dar mais tempo ao usuário
   };
 
   recognizer.onend = () => {
@@ -70,7 +70,6 @@ export function createSpeechRecognizer({
     if (!capturedText && lastInterimText) {
       capturedText = true;
       onResult?.(lastInterimText);
-      onStatusChange?.("Pronto para conversar.");
       return;
     }
 
@@ -81,7 +80,7 @@ export function createSpeechRecognizer({
       return;
     }
 
-    onStatusChange?.("Pronto para conversar.");
+    // Removido StatusChange daqui para evitar conflito com o processamento
   };
 
   recognizer.onerror = (event) => {
@@ -150,13 +149,15 @@ export function createSpeechRecognizer({
 
     capturedText = true;
     noSpeechCount = 0;
+    
+    // Armazenamos o texto final, mas deixamos o onend disparar o onResult final
+    // Isso garante que esperamos o tempo de silêncio do navegador
+    lastInterimText = finalText;
+
     if (compatibilityMode) {
       compatibilityMode = false;
       applyRecognitionProfile();
-      onDiagnostic?.("Saindo do modo de compatibilidade: reconhecimento voltou ao normal.");
     }
-    onResult?.(finalText);
-    recognizer.stop();
   };
 
   recognizer.onaudiostart = () => {

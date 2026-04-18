@@ -434,6 +434,6 @@ await loadAudioInputDevices();
 
 addMessage(
   "assistant",
-  "Olá, eu sou o Axel, seu assistente virtual. Diga “Axel” seguido da sua pergunta. Caso eu não tenha a resposta, posso pesquisar na Wikipedia para encontrar a melhor informação para você.",
+  "Olá! Eu sou o Axel. Como posso te ajudar hoje?",
   "sistema"
 );
