@@ -9,6 +9,16 @@ function pickPortugueseVoice() {
   return pt || null;
 }
 
+function stripMarkdown(text) {
+  return String(text || "")
+    .replace(/\*\*/g, "")     // Remove negrito
+    .replace(/\*/g, "")      // Remove itálico
+    .replace(/_{1,2}/g, "")   // Remove underscores
+    .replace(/[`#]/g, "")     // Remove crases e hashtags
+    .replace(/\[(.*?)\]\(.*?\)/g, "$1") // Remove links, mantém o texto
+    .trim();
+}
+
 let activeSpeechToken = 0;
 
 function splitIntoSpeechChunks(text, maxLength = 260) {
@@ -48,8 +58,10 @@ function splitIntoSpeechChunks(text, maxLength = 260) {
 }
 
 export function speak(text, callbacks = {}) {
-  const clean = String(text || "").trim();
-  if (!clean || !("speechSynthesis" in window)) return false;
+  const raw = String(text || "").trim();
+  if (!raw || !("speechSynthesis" in window)) return false;
+
+  const clean = stripMarkdown(raw);
 
   const chunks = splitIntoSpeechChunks(clean);
   if (!chunks.length) return false;
