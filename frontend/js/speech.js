@@ -67,9 +67,10 @@ export function createSpeechRecognizer({
     clearTimer();
     onListeningChange?.(false);
 
-    if (!capturedText && lastInterimText) {
-      capturedText = true;
+    if (lastInterimText) {
       onResult?.(lastInterimText);
+      lastInterimText = "";
+      capturedText = true;
       return;
     }
 
@@ -147,7 +148,7 @@ export function createSpeechRecognizer({
 
     if (!finalText) return;
 
-    capturedText = true;
+    // Apenas marcamos que houve captura de interesse, o onend fará o disparo real
     noSpeechCount = 0;
     
     // Armazenamos o texto final, mas deixamos o onend disparar o onResult final
