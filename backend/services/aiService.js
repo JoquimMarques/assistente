@@ -1,4 +1,4 @@
-export async function askFreeAI(query) {
+export async function askFreeAI(query, history = []) {
   const clean = String(query || "").trim();
   if (!clean) return null;
 
@@ -22,22 +22,26 @@ export async function askFreeAI(query) {
   INTERFACE: Sistema Axel Premium.
   IDIOMA: Português (PT-BR) fluído.`;
 
+  // Construir a lista de mensagens incluindo o histórico
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...history,
+    { role: "user", content: clean }
+  ];
+
   try {
-    console.log("[aiService] Chamando OpenRouter para:", clean);
+    console.log("[aiService] Chamando OpenRouter com contexto de conversa.");
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://vercel.com", // Requisito do OpenRouter para alguns modelos
+        "HTTP-Referer": "https://vercel.com", 
         "X-Title": "Axel Virtual Assistant"
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001", // Modelo mais rápido e moderno disponível no OpenRouter
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: clean }
-        ]
+        model: "google/gemini-2.0-flash-001", 
+        messages: messages
       })
     });
 

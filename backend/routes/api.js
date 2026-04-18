@@ -65,8 +65,8 @@ router.get("/search/wiki", async (req, res) => {
 
 router.post("/ai/answer", async (req, res) => {
   try {
-    const { text } = req.body || {};
-    const result = await askFreeAI(text);
+    const { text, history } = req.body || {};
+    const result = await askFreeAI(text, history);
     res.json({ ok: true, result });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });

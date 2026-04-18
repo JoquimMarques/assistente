@@ -27,6 +27,24 @@ export function parseCommand(text) {
     return { type: "open_memory", query };
   }
 
+  if (normalized === "que horas sao") {
+    return { type: "get_time" };
+  }
+
+  if (normalized === "conselho de hoje" || normalized === "me da um conselho") {
+    return { type: "daily_advice" };
+  }
+
+  // Regex para temporizador (ex: temporizador de 5 minutos, temporizador de 10 segundos)
+  const timerMatch = normalized.match(/temporizador de (\d+) (minutos?|segundos?)/);
+  if (timerMatch) {
+    return { 
+      type: "set_timer", 
+      value: parseInt(timerMatch[1], 10), 
+      unit: timerMatch[2].startsWith("min") ? "minutes" : "seconds" 
+    };
+  }
+
   if (normalized.startsWith("ensinar:")) {
     const payload = raw.slice("ensinar:".length).trim();
     const [question, answer] = payload.split("|").map((part) => part?.trim());

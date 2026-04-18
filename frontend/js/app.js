@@ -19,6 +19,9 @@ const closeSettingsButton = document.querySelector("#btn-close-settings");
 const closeMemoryButton = document.querySelector("#btn-close-memory");
 const memoryForm = document.querySelector("#memory-form");
 const refreshMemoryButton = document.querySelector("#btn-refresh-memory");
+const timerWidget = document.querySelector("#timer-widget");
+const timerDisplay = document.querySelector("#timer-display");
+const cancelTimerButton = document.querySelector("#btn-cancel-timer");
 let isListening = false;
 let isStarting = false;
 let isSpeaking = false;
@@ -26,6 +29,9 @@ let lastNoSpeechAt = 0;
 let lastMicPeak = 0;
 let noSpeechWithSignalCount = 0;
 let selectedDeviceId = "default";
+let chatContext = []; // Armazena o histórico recente: [{ role: "user", content: "..." }, { role: "assistant", content: "..." }]
+const MAX_CONTEXT = 10;
+let timerInterval = null;
 
 function setSpeakingState(speaking) {
   isSpeaking = speaking;
@@ -235,14 +241,29 @@ async function handleInput(text) {
   setStatus("Pensando...");
 
   try {
-    const result = await processUserText(clean);
+    const result = await processUserText(clean, chatContext);
     
     if (result.action === "open_memory") {
       await loadAndShowMemories();
       return;
     }
 
+    if (result.action === "start_timer" && result.timerParams) {
+      const { value, unit } = result.timerParams;
+      const seconds = unit === "minutes" ? value * 60 : value;
+      startTimer(seconds);
+    }
+
     addMessage("assistant", result.reply, result.source || "assistente");
+
+    // Manter o contexto atualizado
+    chatContext.push({ role: "user", content: clean });
+    chatContext.push({ role: "assistant", content: result.reply });
+    
+    // Limitar o tamanho do histórico
+    if (chatContext.length > MAX_CONTEXT) {
+      chatContext = chatContext.slice(-MAX_CONTEXT);
+    }
 
     const speechStarted = speak(result.reply, {
       onStart: () => {
@@ -303,6 +324,46 @@ closeSettingsButton?.addEventListener("click", () => {
   document.body.classList.remove("show-settings");
 });
 
+function startTimer(seconds) {
+  if (timerInterval) clearInterval(timerInterval);
+  
+  let timeLeft = seconds;
+  timerWidget?.classList.remove("hide");
+  updateTimerDisplay(timeLeft);
+
+  timerInterval = setInterval(() => {
+    timeLeft -= 1;
+    updateTimerDisplay(timeLeft);
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerWidget?.classList.add("hide");
+      
+      const msg = "Temporizador terminado!";
+      addMessage("assistant", msg, "sistema");
+      speak(msg, {
+        onStart: () => setSpeakingState(true),
+        onEnd: () => setSpeakingState(false)
+      });
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(totalSeconds) {
+  if (!timerDisplay) return;
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  timerDisplay.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+cancelTimerButton?.addEventListener("click", () => {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  timerWidget?.classList.add("hide");
+  setStatus("Temporizador cancelado.");
+});
+
 async function loadAndShowMemories() {
   try {
     setStatus("Carregando memória...");
@@ -357,7 +418,7 @@ const recognizer = createSpeechRecognizer({
     const clean = String(spokenText || "").trim();
     addDebugLog("VOICE-RESULT", `Recebido: "${clean}"`);
     
-    const result = await processUserText(clean);
+    const result = await processUserText(clean, chatContext);
     addDebugLog("PROCESSOR-ACTION", result.action || "nenhuma");
     
     if (result.action === "open_memory") {

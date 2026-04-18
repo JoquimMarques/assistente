@@ -877,6 +877,77 @@ body.show-memory #memory-panel {
   line-height: 1.4;
 }
 
+/* Timer Widget Styles */
+.timer-widget {
+  position: absolute;
+  top: 90px;
+  left: 50%;
+  transform: translate(-50%, -20px);
+  width: min(200px, 80%);
+  padding: 12px 20px;
+  border-radius: 20px;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: var(--transition);
+  display: flex;
+  justify-content: center;
+}
+
+.timer-widget:not(.hide) {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: all;
+  box-shadow: 0 0 20px var(--orange-glow);
+  border-color: var(--orange-neon);
+}
+
+.timer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.timer-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  color: var(--white);
+  font-size: 1.1rem;
+}
+
+.icon-timer {
+  width: 18px;
+  height: 18px;
+  color: var(--gold-neon);
+}
+
+.btn-cancel-timer {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.btn-cancel-timer:hover {
+  background: rgba(255, 0, 0, 0.2);
+  color: #ff4d4d;
+}
+
+.timer-widget.hide {
+  display: none;
+}
+
 @media (max-width: 480px) {
   .screen {
     padding: 20px 15px;

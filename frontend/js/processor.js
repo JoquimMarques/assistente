@@ -129,7 +129,7 @@ export async function apiPost(url, payload) {
   return response.json();
 }
 
-export async function processUserText(text) {
+export async function processUserText(text, history = []) {
   const raw = String(text || "").trim();
   if (!raw) {
     return { reply: "Envie uma pergunta para eu te ajudar.", source: "sistema" };
@@ -165,6 +165,44 @@ export async function processUserText(text) {
       reply:
         "Para ensinar, use: ensinar: sua pergunta | sua resposta",
       source: "comando"
+    };
+  }
+
+  if (command?.type === "get_time") {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    return {
+      reply: `Agora são exatamente **${timeStr}**.`,
+      source: "sistema"
+    };
+  }
+
+  if (command?.type === "daily_advice") {
+    const today = new Date().toLocaleDateString("pt-BR");
+    const advicePrompt = `Hoje é dia ${today}. Escreva um conselho curto, impactante e inspirador para um jovem. O tema deve ser sobre a vida, motivação ou fé/Deus. Seja direto e encorajador. Max 3 frases.`;
+    
+    try {
+      const ai = await apiPost("/api/ai/answer", { text: advicePrompt, history });
+      if (ai.ok && ai.result?.answer) {
+         return {
+           reply: `Conselho de hoje (${today}):\n\n${ai.result.answer}`,
+           source: "Conselho Axel"
+         };
+      }
+    } catch (e) {
+      return { reply: "O melhor conselho que posso te dar agora é: acredite em si mesmo e comece o dia com gratidão!", source: "fallback" };
+    }
+  }
+
+  if (command?.type === "set_timer") {
+    return {
+      reply: `Tudo bem, temporizador de **${command.value} ${command.unit === "minutes" ? "minuto(s)" : "segundo(s)"}** iniciado agora!`,
+      source: "temporizador",
+      action: "start_timer",
+      timerParams: {
+        value: command.value,
+        unit: command.unit
+      }
     };
   }
 
@@ -216,7 +254,7 @@ export async function processUserText(text) {
 
   // Gemini AI - Prioridade Inteligente
   try {
-    const ai = await apiPost("/api/ai/answer", { text: clean });
+    const ai = await apiPost("/api/ai/answer", { text: clean, history });
     if (ai.ok && ai.result?.answer) {
       return {
         reply: ai.result.answer,
