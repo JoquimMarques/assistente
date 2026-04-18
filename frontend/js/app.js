@@ -16,7 +16,6 @@ const openChatButton = document.querySelector("#btn-open-chat");
 const closeChatButton = document.querySelector("#btn-close-chat");
 const openSettingsButton = document.querySelector("#btn-open-settings");
 const closeSettingsButton = document.querySelector("#btn-close-settings");
-const openMemoryButton = document.querySelector("#btn-open-memory");
 const closeMemoryButton = document.querySelector("#btn-close-memory");
 const memoryForm = document.querySelector("#memory-form");
 const refreshMemoryButton = document.querySelector("#btn-refresh-memory");
@@ -312,7 +311,7 @@ async function loadAndShowMemories() {
   }
 }
 
-openMemoryButton?.addEventListener("click", loadAndShowMemories);
+// (loadAndShowMemories permanece para ser chamado via comando de voz/processador)
 
 closeMemoryButton?.addEventListener("click", () => {
   document.body.classList.remove("show-memory");
