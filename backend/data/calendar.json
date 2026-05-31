@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "title": "tester1",
+    "eventDate": "2026-05-31",
+    "eventTime": "14:50",
+    "description": "tessse",
+    "createdAt": "2026-05-31T11:47:39.676Z"
+  },
+  {
+    "id": 2,
+    "title": "reunião de trabalho",
+    "eventDate": "2026-06-12",
+    "eventTime": "15:00",
+    "description": "",
+    "createdAt": "2026-05-31T12:13:15.430Z"
+  },
+  {
+    "id": 3,
+    "title": "dentista",
+    "eventDate": "2026-06-01",
+    "eventTime": "10:00",
+    "description": "",
+    "createdAt": "2026-05-31T20:34:04.704Z"
+  },
+  {
+    "id": 4,
+    "title": "reunião amanhã",
+    "eventDate": "2026-06-01",
+    "eventTime": "15:00",
+    "description": "",
+    "createdAt": "2026-05-31T20:35:24.873Z"
+  }
+]

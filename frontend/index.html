@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="api-base-url" content="https://assistente-hcwc.onrender.com" />
+  <link rel="icon" type="image/x-icon" href="/img/favicon/favicon.ico" />
+  <title>Axel | Assistente Virtual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Orbitron:wght@500;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest" onerror="console.warn('Lucide CDN failed to load')"></script>
+  <!-- Markdown Rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" onerror="console.warn('Marked CDN failed to load')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" onerror="console.warn('DOMPurify CDN failed to load')"></script>
+  <!-- Offline/No-Internet Resiliency Mocks Fallback -->
+  <script>
+    window.marked = window.marked || {
+      parse: function(text) {
+        return String(text || "")
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/\n/g, '<br>');
+      }
+    };
+    window.DOMPurify = window.DOMPurify || {
+      sanitize: function(text) {
+        return text;
+      }
+    };
+    window.lucide = window.lucide || {
+      createIcons: function() {
+        document.querySelectorAll('[data-lucide]').forEach(el => {
+          if (el.hasAttribute('data-lucide-replaced')) return;
+          const iconName = el.getAttribute('data-lucide');
+          
+          const iconMap = {
+            'message-square': '💬',
+            'message-circle': '💬',
+            'map-pin': '📍',
+            'music': '🎵',
+            'mic': '🎤',
+            'calendar': '📅',
+            'settings': '⚙️',
+            'sliders': '⚙️',
+            'brain': '🧠',
+            'save': '💾',
+            'refresh-cw': '🔄',
+            'x': '❌',
+            'send': '➡️',
+            'timer': '⏱️',
+            'circle-stop': '🛑',
+            'skip-back': '⏮️',
+            'skip-forward': '⏭️',
+            'play': '▶️',
+            'pause': '⏸️',
+            'volume-2': '🔊',
+            'chevron-left': '◀️',
+            'chevron-right': '▶️',
+            'plus-circle': '➕',
+            'trash-2': '🗑️',
+            'mail': '✉️',
+            'loader': '⏳',
+            'check-circle': '✅',
+            'alert-circle': '⚠️'
+          };
+          
+          const emoji = iconMap[iconName] || '▪️';
+          el.style.fontStyle = 'normal';
+          el.style.display = 'inline-flex';
+          el.style.justifyContent = 'center';
+          el.style.alignItems = 'center';
+          el.style.width = '20px';
+          el.style.height = '20px';
+          el.style.fontSize = '14px';
+          el.innerHTML = emoji;
+          el.setAttribute('data-lucide-replaced', 'true');
+        });
+      }
+    };
+  </script>
+</head>
+
+<body>
+  <div class="glow-bg"></div>
+  <canvas id="bg-canvas"></canvas>
+  <main class="screen">
+    <header class="top-bar">
+      <div class="logo-area">
+        <span class="assistant-name">AXeL</span>
+      </div>
+    </header> 
+
+    <!-- Timer Widget -->
+    <section id="timer-widget" class="timer-widget glass hide">
+      <div class="timer-inner">
+        <div class="timer-count">
+          <i data-lucide="timer" class="icon-timer"></i>
+          <span id="timer-display">00:00</span>
+        </div>
+        <button id="btn-cancel-timer" class="btn-cancel-timer" title="Cancelar Temporizador">
+          <i data-lucide="circle-stop"></i>
+        </button>
+      </div>
+    </section>
+
+    <section class="orb-zone" aria-live="polite">
+      <div class="orb-container">
+        <div id="visual-orb" class="visual-orb" aria-hidden="true">
+          <div class="orb-blur"></div>
+          <div class="orb-waves">
+            <div class="wave"></div>
+            <div class="wave"></div>
+            <div class="wave"></div>
+          </div>
+          <div class="orb-scan-gif"></div>
+          <div class="orb-inner-ring"></div>
+          <div class="orb-highlight"></div>
+          <div class="orb-core"></div>
+        </div>
+      </div>
+      <div class="status-container">
+        <p id="status-text" class="status-text">Pronto para conversar.</p>
+        <div id="audio-waves" class="audio-waves">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </section>
+
+    <nav class="bottom-dock">
+      <button id="btn-open-chat" class="dock-btn glass" type="button" title="Abrir conversas">
+        <i data-lucide="message-square"></i>
+      </button>
+      <button id="btn-open-location" class="dock-btn glass" type="button" title="Localização">
+        <i data-lucide="map-pin"></i>
+      </button>
+      <button id="btn-voice" class="btn-voice-premium" type="button" aria-label="Falar com assistente">
+        <div class="voice-icon-inner">
+          <i data-lucide="mic"></i>
+        </div>
+      </button>
+      <button id="btn-open-calendar" class="dock-btn glass" type="button" title="Calendário de Eventos">
+        <i data-lucide="calendar"></i>
+      </button>
+      <button id="btn-open-settings" class="dock-btn glass" type="button" title="Configurações">
+        <i data-lucide="settings"></i>
+      </button>
+    </nav>
+
+    <!-- Chat Panel -->
+    <section id="chat-panel" class="sheet-panel glass">
+      <div class="sheet-header">
+        <div class="header-title">
+          <i data-lucide="message-circle" class="icon-sm"></i>
+          <span>Conversa</span>
+        </div>
+        <button id="btn-close-chat" class="btn-icon-close" type="button">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div id="chat" class="chat-list"></div>
+      <form id="chat-form" class="text-form">
+        <div class="input-wrapper">
+          <input id="chat-input" type="text" placeholder="Diga algo ou Axel..." autocomplete="off" required />
+        </div>
+        <button type="submit" class="btn-send-main">
+          <i data-lucide="send"></i>
+        </button>
+      </form>
+    </section>
+
+    <!-- Settings Panel -->
+    <section id="settings-panel" class="sheet-panel glass">
+      <div class="sheet-header">
+        <div class="header-title">
+          <i data-lucide="sliders" class="icon-sm"></i>
+          <span>Configurações</span>
+        </div>
+        <button id="btn-close-settings" class="btn-icon-close" type="button">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="settings-content">
+        <label class="label-muted">Microfone</label>
+        <div class="mic-controls">
+          <select id="mic-select" class="mic-select glass-input"></select>
+          <button id="btn-refresh-mics" class="btn-refresh glass" type="button">
+            <i data-lucide="refresh-cw"></i>
+          </button>
+        </div>
+
+        <div class="debug-section">
+          <div class="debug-header">
+            <span>Debug de Voz</span>
+            <button id="btn-clear-debug" class="btn-text-action" type="button">Limpar</button>
+          </div>
+          <div id="debug-log" class="debug-log custom-scrollbar"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Memory Manager Panel -->
+    <section id="memory-panel" class="sheet-panel glass">
+      <div class="sheet-header">
+        <div class="header-title">
+          <i data-lucide="brain" class="icon-sm"></i>
+          <span>Memória do Axel</span>
+        </div>
+        <button id="btn-close-memory" class="btn-icon-close" type="button">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="memory-content custom-scrollbar">
+        <!-- Teach Form -->
+        <div class="teach-section">
+          <p class="label-muted">Ensinar Novo Conhecimento</p>
+          <form id="memory-form" class="memory-form">
+            <input id="mem-question" type="text" placeholder="Qual a pergunta?" class="glass-input" required />
+            <textarea id="mem-answer" placeholder="Qual a resposta?" class="glass-input" required></textarea>
+            <button type="submit" class="btn-save-memory">
+              <i data-lucide="save"></i>
+              <span>Salvar na Memória</span>
+            </button>
+          </form>
+        </div>
+
+        <div class="memory-list-section">
+          <div class="list-header">
+            <p class="label-muted">Conhecimentos Salvos</p>
+            <button id="btn-refresh-memory" class="btn-text-action">Atualizar</button>
+          </div>
+          <div id="memory-list" class="memory-list">
+             <!-- Memories will be rendered here -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Email Composer Panel -->
+    <section id="email-panel" class="sheet-panel glass">
+      <div class="sheet-header">
+        <div class="header-title">
+          <i data-lucide="mail" class="icon-sm" style="color: var(--orange-neon);"></i>
+          <span>Enviar E-mail via Axel</span>
+        </div>
+        <button id="btn-close-email" class="btn-icon-close" type="button">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="email-content custom-scrollbar">
+        <form id="email-form" class="email-form">
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label class="label-muted" style="display: block; margin-bottom: 6px;">Para (Destinatário)</label>
+            <input id="email-to" type="email" placeholder="exemplo@email.com" class="glass-input" style="width: 100%;" required />
+          </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label class="label-muted" style="display: block; margin-bottom: 6px;">Assunto</label>
+            <input id="email-subject" type="text" placeholder="Qual o assunto?" class="glass-input" style="width: 100%;" required />
+          </div>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="label-muted" style="display: block; margin-bottom: 6px;">Mensagem</label>
+            <textarea id="email-body" placeholder="Escreva sua mensagem aqui..." class="glass-input" rows="4" style="width: 100%; resize: vertical;" required></textarea>
+          </div>
+          
+          <button type="submit" class="btn-save-memory" id="btn-email-submit" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;">
+            <i data-lucide="send" id="icon-email-send"></i>
+            <span id="text-email-send">Enviar E-mail</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Location Panel -->
+    <section id="location-panel" class="sheet-panel glass">
+      <div class="sheet-header">
+        <div class="header-title">
+          <i data-lucide="map-pin" class="icon-sm" style="color: var(--orange-neon);"></i>
+          <span>Sua Localização</span>
+        </div>
+        <button id="btn-close-location" class="btn-icon-close" type="button">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="location-content" style="display: flex; flex-direction: column; gap: 15px; padding: 10px 0;">
+        <div class="location-info" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); padding: 12px; border-radius: 16px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 8px;">
+          <div><strong>Latitude:</strong> <span id="loc-lat">Carregando...</span></div>
+          <div><strong>Longitude:</strong> <span id="loc-lon">Carregando...</span></div>
+          <div><strong>Precisão:</strong> <span id="loc-accuracy">-</span></div>
+          <div id="loc-address-container" style="display: none;"><strong>Aprox:</strong> <span id="loc-address">-</span></div>
+        </div>
+
+        <!-- Map Iframe Container -->
+        <div class="map-container" style="width: 100%; height: 220px; border-radius: 16px; border: 1px solid var(--glass-border); overflow: hidden; background: rgba(0,0,0,0.3); position: relative;">
+          <iframe id="loc-map-iframe" style="width: 100%; height: 100%; border: none;" src="about:blank"></iframe>
+        </div>
+
+        <button id="btn-update-location" class="btn-save-memory" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;">
+          <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+          <span>Atualizar Localização</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Calendar Panel -->
+    <section id="calendar-panel" class="sheet-panel glass">
+      <div class="sheet-header">
+        <div class="header-title">
+          <i data-lucide="calendar" class="icon-sm" style="color: var(--orange-neon);"></i>
+          <span>Calendário de Eventos</span>
+        </div>
+        <button id="btn-close-calendar" class="btn-icon-close" type="button">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="calendar-content custom-scrollbar" style="display: flex; flex-direction: column; gap: 20px;">
+        <!-- Calendar Grid Area -->
+        <div class="calendar-header-nav" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 8px 12px; border-radius: 12px; border: 1px solid var(--glass-border);">
+          <button id="btn-cal-prev" class="btn-text-action" style="padding: 5px;"><i data-lucide="chevron-left" style="width: 18px; height: 18px;"></i></button>
+          <span id="calendar-month-year" style="font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--white);">Janeiro 2026</span>
+          <button id="btn-cal-next" class="btn-text-action" style="padding: 5px;"><i data-lucide="chevron-right" style="width: 18px; height: 18px;"></i></button>
+        </div>
+
+        <div class="calendar-grid-wrapper" style="background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 16px; border: 1px solid var(--glass-border);">
+          <div class="weekdays-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.5px;">
+            <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+          </div>
+          <div id="calendar-days" class="days-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Day Events List -->
+        <div class="day-events-section" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 16px; border: 1px solid var(--glass-border);">
+          <p class="label-muted" id="selected-day-label" style="margin: 0 0 10px 0;">Compromissos</p>
+          <div id="calendar-events-list" class="calendar-events-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 140px; overflow-y: auto; padding-right: 4px;">
+            <!-- Event items rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Quick Event Form -->
+        <div class="event-form-section">
+          <p class="label-muted" style="margin: 0 0 10px 0;">Adicionar Evento</p>
+          <form id="calendar-event-form" class="memory-form" style="gap: 8px;">
+            <input id="cal-event-title" type="text" placeholder="Nome do compromisso" class="glass-input" style="width: 100%;" required />
+            <div class="form-row" style="display: flex; gap: 8px; width: 100%;">
+              <input id="cal-event-date" type="date" class="glass-input" style="flex: 1;" required />
+              <input id="cal-event-time" type="time" class="glass-input" style="flex: 1;" required />
+            </div>
+            <input id="cal-event-desc" type="text" placeholder="Descrição (Opcional)" class="glass-input" style="width: 100%;" />
+            <button type="submit" class="btn-save-memory" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;">
+              <i data-lucide="plus-circle"></i>
+              <span>Agendar Compromisso</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/js/app.js"></script>
+  <script>
+    // Initialize Lucide Icons
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+
+</html>
