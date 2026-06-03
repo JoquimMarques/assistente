@@ -1,5 +1,96 @@
 [
   {
+    "id": 18,
+    "question": "ajuda",
+    "answer": "Você pode usar meus comandos locais:\n- Diga **'noticias'** para ver novidades\n- Diga **'tocar musica'** para Lo-Fi\n- Diga **'calendario'** para compromissos\n- Diga **'ensinar: pergunta | resposta'** para guardar informações!",
+    "normalized_question": "ajuda",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 17,
+    "question": "obrigada",
+    "answer": "De nada! Fico feliz em ajudar.",
+    "normalized_question": "obrigada",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 16,
+    "question": "obrigado",
+    "answer": "De nada! Fico feliz em ajudar.",
+    "normalized_question": "obrigado",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 15,
+    "question": "tchau",
+    "answer": "Até logo! Estarei aqui se precisar de mim novamente.",
+    "normalized_question": "tchau",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 14,
+    "question": "como vai",
+    "answer": "Tudo fantástico comigo! E com você, tudo ótimo?",
+    "normalized_question": "como vai",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 13,
+    "question": "o que voce faz",
+    "answer": "Eu posso agendar eventos no seu calendário, enviar e-mails, tocar música Lo-Fi, buscar notícias em tempo real e pesquisar na Wikipedia ou responder dúvidas gerais!",
+    "normalized_question": "o que voce faz",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 12,
+    "question": "quem e voce",
+    "answer": "Eu sou o Axel, seu assistente virtual inteligente. Posso agendar compromissos, enviar e-mails, ver notícias e pesquisar para você.",
+    "normalized_question": "quem e voce",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 11,
+    "question": "boa noite",
+    "answer": "Boa noite! Espero que o seu dia tenha sido excelente. Como posso te ajudar?",
+    "normalized_question": "boa noite",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 10,
+    "question": "boa tarde",
+    "answer": "Boa tarde! Como posso ajudar você hoje?",
+    "normalized_question": "boa tarde",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 9,
+    "question": "bom dia",
+    "answer": "Bom dia! Sou o Axel, seu assistente. Como posso tornar o seu dia melhor?",
+    "normalized_question": "bom dia",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 8,
+    "question": "tudo bem",
+    "answer": "Tudo ótimo por aqui! Eu sou o Axel, seu assistente virtual. Como posso te ajudar hoje?",
+    "normalized_question": "tudo bem",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 7,
+    "question": "ola",
+    "answer": "Olá! Tudo bem? Sou o Axel. Como posso ajudar você hoje?",
+    "normalized_question": "ola",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
+    "id": 6,
+    "question": "oi",
+    "answer": "Olá! Como vai? Sou o Axel, seu assistente inteligente. Em que posso ajudar?",
+    "normalized_question": "oi",
+    "createdAt": "2026-06-04T00:15:00.000Z"
+  },
+  {
     "id": 5,
     "question": "dados pessoais",
     "answer": "Nao compartilho informacoes privadas meu..",

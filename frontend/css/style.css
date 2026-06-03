@@ -6,6 +6,7 @@
   --gold-neon: #ffd900;
   --gold-glow: rgba(255, 217, 0, 0.3);
   --blue-neon: #ff8c00;
+  --peach-neon: #ff7700;
 
   --blue-glow: rgba(255, 140, 0, 0.3);
   --white: #fffaf6;
@@ -321,6 +322,16 @@ html {
   transition: var(--transition);
   position: relative;
   z-index: 2;
+  animation: voice-idle-glow 3s infinite ease-in-out;
+}
+
+@keyframes voice-idle-glow {
+  0%, 100% {
+    box-shadow: 0 5px 15px rgba(255, 170, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 10px 25px rgba(255, 170, 0, 0.6);
+  }
 }
 
 .btn-voice-premium:hover {
@@ -352,8 +363,22 @@ html {
 }
 
 body.assistant-listening .btn-voice-premium {
-  box-shadow: 0 0 50px var(--gold-neon), 0 0 100px var(--orange-glow);
-  transform: scale(1.1);
+  animation: voice-listening-pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes voice-listening-pulse {
+  0% {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px var(--gold-neon), 0 0 0 0px rgba(255, 217, 0, 0.5);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 35px var(--gold-neon), 0 0 0 15px rgba(255, 217, 0, 0);
+  }
+  100% {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px var(--gold-neon), 0 0 0 0px rgba(255, 217, 0, 0);
+  }
 }
 
 .dock-btn {
@@ -950,12 +975,57 @@ body.show-memory #memory-panel {
 
 @media (max-width: 480px) {
   .screen {
-    padding: 20px 15px;
+    padding: 16px 12px;
+  }
+
+  .orb-zone {
+    gap: 25px;
   }
 
   .visual-orb {
-    width: 200px;
-    height: 200px;
+    width: 170px;
+    height: 170px;
+  }
+
+  /* Bottom Dock Mobile Optimizations */
+  .bottom-dock {
+    padding: 12px 0;
+    gap: 6px;
+    justify-content: space-around;
+  }
+
+  .dock-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  .dock-btn i, .dock-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .btn-voice-premium {
+    width: 68px;
+    height: 68px;
+  }
+
+  .voice-icon-inner i, .voice-icon-inner svg {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  /* Bottom Panels Mobile Optimizations */
+  .sheet-panel {
+    width: 100%;
+    max-height: 85vh;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    padding: 20px 16px 28px 16px;
+  }
+  
+  .chat-list {
+    min-height: 150px;
   }
 }
 

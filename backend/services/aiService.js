@@ -29,40 +29,54 @@ export async function askFreeAI(query, history = []) {
     { role: "user", content: clean }
   ];
 
-  try {
-    console.log("[aiService] Chamando OpenRouter com contexto de conversa.");
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://vercel.com", 
-        "X-Title": "Axel Virtual Assistant"
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001", 
-        messages: messages
-      })
-    });
+  const models = [
+    { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+    { id: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B (Free)" },
+    { id: "google/gemma-4-31b-it:free", name: "Gemma 4 31B (Free)" }
+  ];
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[aiService] Erro OpenRouter Status:", response.status, errorText);
-      return null;
+  for (const modelInfo of models) {
+    try {
+      console.log(`[aiService] Chamando OpenRouter com modelo ${modelInfo.id}...`);
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://vercel.com", 
+          "X-Title": "Axel Virtual Assistant"
+        },
+        body: JSON.stringify({
+          model: modelInfo.id, 
+          messages: messages,
+          max_tokens: 1000
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn(`[aiService] Erro com modelo ${modelInfo.id} (Status ${response.status}):`, errorText);
+        continue;
+      }
+
+      const data = await response.json();
+      const answer = data.choices?.[0]?.message?.content || "";
+
+      if (!answer) {
+        console.warn(`[aiService] Resposta vazia recebida do modelo ${modelInfo.id}`);
+        continue;
+      }
+
+      console.log(`[aiService] Resposta recebida com sucesso usando ${modelInfo.name}`);
+      return {
+        answer,
+        source: `${modelInfo.name} (via OpenRouter)`
+      };
+    } catch (error) {
+      console.error(`[aiService] Erro na requisicao para o modelo ${modelInfo.id}:`, error);
+      continue;
     }
-
-    const data = await response.json();
-    console.log("[aiService] Resposta recebida do OpenRouter");
-    const answer = data.choices?.[0]?.message?.content || "";
-
-    if (!answer) return null;
-
-    return {
-      answer,
-      source: "Gemini AI (via OpenRouter)"
-    };
-  } catch (error) {
-    console.error("[aiService] Erro na requisicao:", error);
-    return null;
   }
+
+  return null;
 }

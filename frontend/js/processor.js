@@ -213,6 +213,35 @@ export async function processUserText(text, history = []) {
     }
   }
 
+  // --- CONSULTA EXPRESSA DA WIKIPEDIA ---
+  const isExplicitWiki = 
+    clean.startsWith("wikipedia:") || 
+    clean.startsWith("wiki:") || 
+    clean.includes("pesquise na wikipedia") || 
+    clean.includes("buscar na wikipedia") || 
+    clean.includes("procure na wikipedia") ||
+    clean.includes("pesquisa na wikipedia") ||
+    clean.includes("busca na wikipedia");
+
+  if (isExplicitWiki) {
+    const keyword = extractSearchTopic(clean);
+    try {
+      const wiki = await apiGet(`/api/search/wiki?q=${encodeURIComponent(keyword)}`);
+      if (wiki.result?.summary) {
+        let reply = `Aqui está o que encontrei na Wikipedia sobre **${wiki.result.title}**:\n\n${wiki.result.summary}`;
+        if (wiki.result.source) {
+          reply += `\n\n🔗 *Gostaria de saber mais? Acesse o artigo completo na [Wikipedia](${wiki.result.source}).*`;
+        }
+        return { reply, source: "Wikipedia" };
+      } else {
+        return { reply: `Procurei por **"${keyword}"** na Wikipedia, mas não encontrei nenhum artigo relevante. Quer tentar outro termo?`, source: "Wikipedia" };
+      }
+    } catch (e) {
+      console.error("Erro ao buscar Wiki expressa:", e);
+      return { reply: "Tentei acessar a Wikipedia para você, mas ocorreu uma falha de conexão. Tente novamente mais tarde.", source: "Wikipedia (Erro)" };
+    }
+  }
+
   // --- Pipeline normal (memória → IA → Wikipedia) ---
   const exact = await apiPost("/api/memory/exact", { text: clean });
   if (exact.memory?.answer) return { reply: exact.memory.answer, source: "memoria_exata" };
@@ -241,15 +270,44 @@ export async function processUserText(text, history = []) {
     try {
       const wiki = await apiGet(`/api/search/wiki?q=${encodeURIComponent(query)}`);
       if (wiki.result?.summary) {
-        return { reply: wiki.result.summary, source: "wikipedia" };
+        let reply = `Encontrei isto na Wikipedia sobre **${wiki.result.title}**:\n\n${wiki.result.summary}`;
+        if (wiki.result.source) {
+          reply += `\n\n🔗 *Fonte: [Wikipedia](${wiki.result.source}).*`;
+        }
+        return { reply, source: "Wikipedia" };
       }
     } catch (e) {
       console.error("Erro ao buscar Wiki:", e);
     }
   }
 
+  // --- RESPOSTAS DE RESERVA INTELIGENTES (FALLBACK LOCAL) ---
+  const normalizedClean = normalizeForMatch(clean);
+  if (normalizedClean.includes("ajuda") || normalizedClean.includes("socorro") || normalizedClean.includes("suporte") || normalizedClean.includes("comandos")) {
+    return {
+      reply: "Precisa de ajuda? No momento, minha conexão com a IA principal está instável, mas você pode usar meus comandos locais:\n\n- Diga **'tocar musica'** para ouvir Lo-Fi\n- Diga **'noticias'** para ver as novidades do dia\n- Diga **'calendario'** para abrir seu painel de compromissos\n- Diga **'ensinar: pergunta | resposta'** para gravar uma resposta direta na minha memória.",
+      source: "fallback_ajuda"
+    };
+  }
+
+  if (normalizedClean.includes("quem e") || normalizedClean.includes("o que e") || normalizedClean.includes("significado") || normalizedClean.includes("como funciona")) {
+    return {
+      reply: "Peço desculpas! Não consegui pesquisar essa informação agora porque meus serviços de busca (IA e Wikipedia) estão offline. Deseja tentar ensinar-me a resposta com `ensinar: pergunta | resposta`?",
+      source: "fallback_busca"
+    };
+  }
+
+  const randomFallbacks = [
+    "Minha conexão de IA e serviços de busca falharam agora. Tem algo que eu possa fazer localmente (tocar música, abrir calendário, notícias)?",
+    "Estou com instabilidade na conexão para processar sua pergunta. Se quiser, você pode me ensinar o que responder usando: `ensinar: sua pergunta | sua resposta`!",
+    "Ops! Parece que o servidor de inteligência não pôde responder a tempo. Quer tentar refazer a pergunta de outra forma?",
+    "Meus servidores estão temporariamente ocupados ou sem comunicação. Estou por aqui operando em modo de segurança. Como posso ajudar com funções locais?",
+    "Hum, não consegui obter resposta da IA e nem na Wikipedia. Se for algo importante, você pode me ensinar essa resposta diretamente no comando `ensinar:`."
+  ];
+
+  const randomReply = randomFallbacks[Math.floor(Math.random() * randomFallbacks.length)];
   return {
-    reply: "Não consegui encontrar uma resposta específica, mas você pode me ensinar usando 'ensinar: pergunta | resposta'.",
-    source: "fallback"
+    reply: randomReply,
+    source: "fallback_sistema"
   };
 }

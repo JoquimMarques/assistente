@@ -45,11 +45,21 @@ function normalizeQuestionToTopic(query) {
     .replace(/\bo\s+que\s+[ée]\b/g, "")
     .replace(/\bo\s+que\s+eh\b/g, "")
     .replace(/\bquem\s+[ée]\b/g, "")
+    .replace(/\bquem\s+foi\b/g, "")
     .replace(/\bcomo\s+funciona\b/g, "")
     .replace(/\bexplique\b/g, "")
     .replace(/\bme\s+fala\s+sobre\b/g, "")
     .replace(/\bme\s+fale\s+sobre\b/g, "")
     .replace(/\bsobre\b/g, "")
+    .replace(/\bpesquise\s+sobre\b/g, "")
+    .replace(/\bpesquise\s+na\s+wikipedia\s+sobre\b/g, "")
+    .replace(/\bbusque\s+na\s+wikipedia\s+sobre\b/g, "")
+    .replace(/\bprocure\s+na\s+wikipedia\s+sobre\b/g, "")
+    .replace(/\bna\s+wikipedia\s+sobre\b/g, "")
+    .replace(/\bwikipedia\b/g, "")
+    .replace(/\bqual\s+o\s+significado\s+de\b/g, "")
+    .replace(/\bo\s+que\s+significa\b/g, "")
+    .replace(/\bdefina\b/g, "")
     .replace(/^\b(o|a|os|as|um|uma)\b\s+/g, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -80,6 +90,10 @@ function isSummaryRelevant(summary, topic) {
   const topicTokens = tokenizeMeaningful(topic);
   if (!topicTokens.length) return true;
 
+  // Se o título for uma correspondência quase exata do tópico, é relevante
+  const titleScore = scoreTitleAgainstTopic(summary.title, topic);
+  if (titleScore >= 0.7) return true;
+
   const combined = normalizeForCompare(`${summary.title} ${summary.summary}`);
   const hits = topicTokens.filter((token) => combined.includes(token)).length;
 
@@ -87,7 +101,8 @@ function isSummaryRelevant(summary, topic) {
     return hits >= 1;
   }
 
-  return hits / topicTokens.length >= 0.5;
+  // Mais tolerante: 40% de correspondência dos termos no resumo/título
+  return hits / topicTokens.length >= 0.4;
 }
 
 async function fetchWikipediaSummaryByTitle(title) {

@@ -2,11 +2,42 @@ function pickPortugueseVoice() {
   const voices = window.speechSynthesis?.getVoices?.() || [];
   if (!voices.length) return null;
 
-  const exact = voices.find((voice) => voice.lang?.toLowerCase() === "pt-br");
-  if (exact) return exact;
+  // Filtrar apenas vozes em português
+  const ptVoices = voices.filter((voice) =>
+    String(voice.lang || "").toLowerCase().startsWith("pt")
+  );
 
-  const pt = voices.find((voice) => String(voice.lang || "").toLowerCase().startsWith("pt"));
-  return pt || null;
+  if (!ptVoices.length) return null;
+
+  // Preferência para vozes femininas na ordem de melhor qualidade (mais natural)
+  const preferredKeywords = [
+    "francisca",       // Edge Natural (excelente)
+    "google portugues", // Chrome (muito boa)
+    "heloisa",         // Microsoft (boa)
+    "raquel",          // macOS
+    "luciana",         // macOS
+    "joana",           // macOS
+    "maria",           // Microsoft (robótica, mas clássica)
+    "elsa"             // Microsoft pt-PT
+  ];
+
+  for (const keyword of preferredKeywords) {
+    const found = ptVoices.find((voice) =>
+      voice.name.toLowerCase().includes(keyword)
+    );
+    if (found) return found;
+  }
+
+  // Fallback: tentar pegar qualquer voz pt-BR que não pareça masculina
+  const ptBr = ptVoices.filter((voice) => voice.lang?.toLowerCase() === "pt-br");
+  const fallbackList = ptBr.length ? ptBr : ptVoices;
+
+  const maleKeywords = ["daniel", "antonio", "duarte", "helio", "masculino"];
+  const femaleFallback = fallbackList.find((voice) =>
+    !maleKeywords.some(male => voice.name.toLowerCase().includes(male))
+  );
+
+  return femaleFallback || fallbackList[0];
 }
 
 function stripMarkdown(text) {
@@ -20,6 +51,7 @@ function stripMarkdown(text) {
 }
 
 let activeSpeechToken = 0;
+let activeUtterances = []; // Mantém referências ativas para evitar Garbage Collection que para a fala do nada
 
 function splitIntoSpeechChunks(text, maxLength = 260) {
   const clean = String(text || "").replace(/\s+/g, " ").trim();
@@ -72,7 +104,9 @@ export function speak(text, callbacks = {}) {
   const speechToken = activeSpeechToken + 1;
   activeSpeechToken = speechToken;
 
+  // Cancelar falas anteriores e limpar a lista de referências ativas
   window.speechSynthesis.cancel();
+  activeUtterances = [];
   window.speechSynthesis.resume();
   onStart?.();
 
@@ -83,6 +117,10 @@ export function speak(text, callbacks = {}) {
     if (index >= chunks.length) return;
 
     const utterance = new SpeechSynthesisUtterance(chunks[index]);
+
+    // Guardar a referência no array global para evitar Garbage Collection no meio da fala
+    activeUtterances.push(utterance);
+
     utterance.lang = voice?.lang || "pt-BR";
     utterance.rate = 1;
     utterance.pitch = 1;
@@ -90,7 +128,12 @@ export function speak(text, callbacks = {}) {
       utterance.voice = voice;
     }
 
+    const cleanUpUtterance = () => {
+      activeUtterances = activeUtterances.filter((u) => u !== utterance);
+    };
+
     utterance.onend = () => {
+      cleanUpUtterance();
       if (activeSpeechToken !== speechToken) return;
       index += 1;
       if (index >= chunks.length) {
@@ -101,6 +144,7 @@ export function speak(text, callbacks = {}) {
     };
 
     utterance.onerror = () => {
+      cleanUpUtterance();
       if (activeSpeechToken !== speechToken) return;
       index += 1;
       if (index >= chunks.length) {
