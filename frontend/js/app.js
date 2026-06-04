@@ -293,7 +293,11 @@ async function handleInput(text) {
       const { phone, text } = result.whatsappParams;
       // Usar o número exatamente como foi guardado (sem prefixo automático)
       const cleanPhone = phone.replace(/[^\d]/g, "");
-      const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+      
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const url = isMobile 
+        ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`
+        : `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`;
 
       // Mostrar a mensagem do assistente
       addMessage("assistant", result.reply, result.source);
@@ -303,8 +307,10 @@ async function handleInput(text) {
       if (chat) {
         const waBtn = document.createElement("a");
         waBtn.href = url;
-        waBtn.target = "_blank";
-        waBtn.rel = "noopener noreferrer";
+        if (!isMobile) {
+          waBtn.target = "_blank";
+          waBtn.rel = "noopener noreferrer";
+        }
         waBtn.style.cssText = `
           display: flex; align-items: center; gap: 10px;
           margin: 6px 0 6px auto; max-width: 280px;
@@ -319,6 +325,17 @@ async function handleInput(text) {
         waBtn.onmouseout = () => waBtn.style.opacity = "1";
         chat.appendChild(waBtn);
         chat.scrollTop = chat.scrollHeight;
+
+        // Tentar redirecionar automaticamente
+        if (isMobile) {
+          window.location.href = url;
+        } else {
+          try {
+            window.open(url, "_blank");
+          } catch (e) {
+            console.warn("Abertura automática bloqueada pelo navegador no desktop:", e);
+          }
+        }
       }
 
       speak(result.reply, {
