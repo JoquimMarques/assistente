@@ -10,6 +10,7 @@ import { askFreeAI } from "../services/aiService.js";
 import { fetchTopNews } from "../services/newsService.js";
 import { sendEmail } from "../services/emailService.js";
 import { listEvents, createEvent, deleteEvent } from "../services/calendarService.js";
+import { listContacts, createContact, findContactByName } from "../services/contactService.js";
 
 const router = Router();
 
@@ -125,6 +126,35 @@ router.delete("/calendar/events/:id", async (req, res) => {
     const { id } = req.params;
     await deleteEvent(id);
     res.json({ ok: true });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+router.get("/contacts", async (req, res) => {
+  try {
+    const contacts = await listContacts();
+    res.json({ ok: true, contacts });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+router.post("/contacts", async (req, res) => {
+  try {
+    const { name, phone } = req.body || {};
+    const contact = await createContact({ name, phone });
+    res.status(201).json({ ok: true, contact });
+  } catch (error) {
+    res.status(400).json({ ok: false, error: error.message });
+  }
+});
+
+router.get("/contacts/search", async (req, res) => {
+  try {
+    const { name } = req.query;
+    const contact = await findContactByName(name);
+    res.json({ ok: true, contact });
   } catch (error) {
     res.status(500).json({ ok: false, error: error.message });
   }

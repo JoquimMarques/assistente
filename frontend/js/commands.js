@@ -249,6 +249,46 @@ export function parseCommand(text) {
     };
   }
 
+  // --- CONTACTOS E WHATSAPP ---
+  const addContactRegex = /(?:adicionar|add|guardar|gravar)\s+(?:o\s+)?contacto\s+(\+?[\d\s\-]+)\s+com\s+(?:o\s+)?nome\s+(.+)/i;
+  const contactMatch = raw.match(addContactRegex);
+  if (contactMatch) {
+    return {
+      type: "add_contact",
+      phone: contactMatch[1].trim(),
+      name: contactMatch[2].trim()
+    };
+  }
+
+  const CMD_PREFIX = /(?:enviar\s+mensagem|mandar\s+mensagem|enviar\s+msg|mandar\s+msg)\s+(?:para\s+o\s+nome\s+|para\s+o\s+|para\s+a\s+|para\s+)?/i;
+
+  // Padrão 1: Com dois pontos literal ou a palavra "dois pontos"
+  const wpRegex1 = /(?:enviar\s+mensagem|mandar\s+mensagem|enviar\s+msg|mandar\s+msg)\s+(?:para\s+o\s+nome\s+|para\s+o\s+|para\s+a\s+|para\s+)?([^:]+?)\s*(?::|dois\s*pontos)\s*(.+)/i;
+
+  // Padrão 2: Com verbos separadores orais ("diz", "dizendo", "a dizer", "com o texto")
+  const wpRegex2 = /(?:enviar\s+mensagem|mandar\s+mensagem|enviar\s+msg|mandar\s+msg)\s+(?:para\s+o\s+nome\s+|para\s+o\s+|para\s+a\s+|para\s+)?([A-Za-zÀ-ÿ0-9\s]+?)\s+(?:diz|dizer|dizendo|a\s+dizer|com\s+o\s+texto|com\s+mensagem|com\s+a\s+mensagem)\s+(.+)/i;
+
+  // Padrão 3: Sem separador (ex: "enviar mensagem para Nelson Marques olá tudo bem")
+  // Capturamos todo o resto da frase após o prefixo para resolver inteligentemente no processor
+  const wpRegex3 = /(?:enviar\s+mensagem|mandar\s+mensagem|enviar\s+msg|mandar\s+msg)\s+(?:para\s+o\s+nome\s+|para\s+o\s+|para\s+a\s+|para\s+)?(.+)/i;
+
+  let wpMatch = raw.match(wpRegex1) || raw.match(wpRegex2);
+  if (wpMatch) {
+    return {
+      type: "send_whatsapp",
+      name: wpMatch[1].trim(),
+      message: wpMatch[2].trim()
+    };
+  }
+
+  let wpMatchFallback = raw.match(wpRegex3);
+  if (wpMatchFallback) {
+    return {
+      type: "send_whatsapp",
+      rawText: wpMatchFallback[1].trim()
+    };
+  }
+
   return null;
 }
 

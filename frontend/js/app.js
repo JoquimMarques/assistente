@@ -289,6 +289,44 @@ async function handleInput(text) {
       });
       return;
     }
+    if (result.action === "send_whatsapp" && result.whatsappParams) {
+      const { phone, text } = result.whatsappParams;
+      // Usar o número exatamente como foi guardado (sem prefixo automático)
+      const cleanPhone = phone.replace(/[^\d]/g, "");
+      const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+
+      // Mostrar a mensagem do assistente
+      addMessage("assistant", result.reply, result.source);
+
+      // Injetar botão WhatsApp clicável diretamente no chat (sem popup blocker)
+      const chat = document.querySelector("#chat");
+      if (chat) {
+        const waBtn = document.createElement("a");
+        waBtn.href = url;
+        waBtn.target = "_blank";
+        waBtn.rel = "noopener noreferrer";
+        waBtn.style.cssText = `
+          display: flex; align-items: center; gap: 10px;
+          margin: 6px 0 6px auto; max-width: 280px;
+          background: linear-gradient(135deg, #25D366, #128C7E);
+          color: #fff; font-weight: 700; font-size: 0.95rem;
+          text-decoration: none; padding: 12px 18px;
+          border-radius: 16px; box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+          transition: opacity 0.2s ease; cursor: pointer;
+        `;
+        waBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.099 1.51 5.828L0 24l6.335-1.484A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818c-1.939 0-3.742-.527-5.28-1.443l-.379-.225-3.76.881.924-3.653-.247-.393A9.8 9.8 0 012.182 12C2.182 6.579 6.579 2.182 12 2.182S21.818 6.579 21.818 12 17.421 21.818 12 21.818z"/></svg>Abrir WhatsApp → ${cleanPhone}`;
+        waBtn.onmouseover = () => waBtn.style.opacity = "0.85";
+        waBtn.onmouseout = () => waBtn.style.opacity = "1";
+        chat.appendChild(waBtn);
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      speak(result.reply, {
+        onStart: () => { setSpeakingState(true); setStatus("A abrir WhatsApp..."); },
+        onEnd:   () => { setSpeakingState(false); setStatus("Pronto para conversar."); }
+      });
+      return;
+    }
 
     addMessage("assistant", result.reply, result.source || "assistente");
 

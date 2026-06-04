@@ -213,6 +213,104 @@ export async function processUserText(text, history = []) {
     }
   }
 
+  // --- CONTACTOS E WHATSAPP ---
+  if (command?.type === "add_contact") {
+    try {
+      const res = await apiPost("/api/contacts", { name: command.name, phone: command.phone });
+      if (res.ok) {
+        return {
+          reply: `Contacto **"${command.name}"** adicionado com o número **${command.phone}** com sucesso! ✅`,
+          source: "contactos"
+        };
+      }
+    } catch (e) {
+      return { reply: "Não consegui guardar o contacto agora. Verifique a ligação ao servidor.", source: "erro" };
+    }
+  }
+
+  if (command?.type === "send_whatsapp") {
+    try {
+      let targetName = command.name;
+      let targetMessage = command.message;
+
+      if (command.rawText) {
+        // Buscar todos os contactos do servidor para comparar com o rawText falado/escrito
+        let contacts = [];
+        try {
+          const contactsRes = await apiGet("/api/contacts");
+          contacts = contactsRes.contacts || [];
+        } catch (err) {
+          console.error("[processor] Falha ao obter contactos para correspondência:", err);
+        }
+
+        // Ordenar os contactos pelo comprimento do nome decrescente (ex: "Nelson Marques" antes de "Nelson")
+        const sortedContacts = [...contacts].sort((a, b) => (b.name || "").length - (a.name || "").length);
+        const normalizedRawText = normalizeForMatch(command.rawText);
+        let foundContact = null;
+
+        for (const contact of sortedContacts) {
+          const normContactName = normalizeForMatch(contact.name);
+          if (normContactName && (normalizedRawText + " ").startsWith(normContactName + " ")) {
+            foundContact = contact;
+            
+            // Separar o nome da mensagem. Como usamos NFD e removemos acentos na normalização,
+            // podemos estimar pelo número de palavras.
+            const rawWords = command.rawText.split(/\s+/);
+            const nameWordsCount = contact.name.split(/\s+/).length;
+            
+            targetName = contact.name;
+            targetMessage = rawWords.slice(nameWordsCount).join(" ").trim();
+            break;
+          }
+        }
+
+        if (!foundContact) {
+          // Se não bater com nenhum contacto da lista, usamos o comportamento de fallback
+          // assume que a primeira palavra é o nome do contacto, e o resto é a mensagem
+          const spaceIdx = command.rawText.indexOf(" ");
+          if (spaceIdx > 0) {
+            targetName = command.rawText.substring(0, spaceIdx).trim();
+            targetMessage = command.rawText.substring(spaceIdx + 1).trim();
+          } else {
+            targetName = command.rawText;
+            targetMessage = "";
+          }
+        }
+      }
+
+      if (!targetMessage) {
+        return {
+          reply: `Encontrei o contacto **"${targetName}"**. Qual é a mensagem que queres enviar?`,
+          source: "whatsapp"
+        };
+      }
+
+      const res = await apiGet(`/api/contacts/search?name=${encodeURIComponent(targetName)}`);
+      if (res.ok && res.contact) {
+        // Usar o número exatamente como foi guardado (sem adicionar prefixo automático)
+        const cleanPhone = res.contact.phone.replace(/[^\d]/g, "");
+        const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(targetMessage)}`;
+        return {
+          reply: `A abrir o WhatsApp para enviar mensagem a **${res.contact.name}**... 💬\n\nCaso a janela não abra automaticamente devido ao bloqueador do navegador, clique abaixo:\n👉 **[Enviar mensagem via WhatsApp](${waUrl})**`,
+          source: "whatsapp",
+          action: "send_whatsapp",
+          whatsappParams: {
+            phone: res.contact.phone,
+            text: targetMessage
+          }
+        };
+      } else {
+        return {
+          reply: `Não encontrei nenhum contacto com o nome **"${targetName}"**. Podes adicioná-lo primeiro com o comando: *adicionar contacto [número] com nome [nome]*.`,
+          source: "whatsapp"
+        };
+      }
+    } catch (e) {
+      console.error("[processor] erro no whatsapp:", e);
+      return { reply: "Ocorreu um erro ao processar o contacto. Tente novamente.", source: "erro" };
+    }
+  }
+
   // --- CONSULTA EXPRESSA DA WIKIPEDIA ---
   const isExplicitWiki = 
     clean.startsWith("wikipedia:") || 

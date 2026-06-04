@@ -19,7 +19,6 @@ export async function askFreeAI(query, history = []) {
   4. NUNCA use emojis.
   5. Forneça fatos com clareza e autoridade.
   
-  INTERFACE: Sistema Axel Premium.
   IDIOMA: Português (PT-BR) fluído.`;
 
   // Construir a lista de mensagens incluindo o histórico
